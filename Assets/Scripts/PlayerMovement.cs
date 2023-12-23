@@ -1,10 +1,12 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Cinemachine;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerMovement : MonoBehaviour
 {
+    [Header("Movement Options")]
     [SerializeField]
     private float moveSpeed;
 
@@ -17,13 +19,28 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField]
     private float gravityMagnitude;
 
+    [Header("Camera Options")]
+    [SerializeField]
+    private CinemachineVirtualCamera virtualCamera;
+
+    [SerializeField]
+    [Tooltip("How fast the camera zooms out when sprinting.")]
+    private float sprintZoomSpeed;
+
+    [SerializeField]
+    [Tooltip("How much the camera zooms out when sprinting.")]
+    private float sprintZoomMultiplier;
+
     private CharacterController controller;
     private MeshRenderer meshRenderer;
 
     private Vector3 moveDirection;
     private float verticalVelocity;
+    private float normalCameraOrthoSize;
     private bool isGrounded;
     private bool waitingForJump;
+    private IEnumerator cameraZoomOutHandle;
+    private IEnumerator cameraZoomInHandle;
 
     // Start is called before the first frame update
     void Start()
@@ -33,6 +50,7 @@ public class PlayerMovement : MonoBehaviour
 
         moveDirection = Vector3.zero;
         verticalVelocity = -0.5f;
+        normalCameraOrthoSize = virtualCamera.m_Lens.OrthographicSize;
         isGrounded = true;
         waitingForJump = false;
     }
@@ -109,15 +127,53 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    private IEnumerator ZoomOutCamera()
+    {
+        while (virtualCamera.m_Lens.OrthographicSize < normalCameraOrthoSize * sprintZoomMultiplier)
+        {
+            virtualCamera.m_Lens.OrthographicSize += sprintZoomSpeed * Time.deltaTime;
+            yield return new WaitForEndOfFrame();
+        }
+
+        virtualCamera.m_Lens.OrthographicSize = normalCameraOrthoSize * sprintZoomMultiplier;
+    }
+
+    private IEnumerator ZoomInCamera()
+    {
+        while (virtualCamera.m_Lens.OrthographicSize > normalCameraOrthoSize)
+        {
+            virtualCamera.m_Lens.OrthographicSize -= sprintZoomSpeed / 2 * Time.deltaTime;
+            yield return new WaitForEndOfFrame();
+        }
+
+        virtualCamera.m_Lens.OrthographicSize = normalCameraOrthoSize;
+    }
+
     public void Sprint(InputAction.CallbackContext context)
     {
         // TODO: toggle vs hold to sprint
         if (context.started)
         {
+            if (cameraZoomInHandle != null)
+            {
+                StopCoroutine(cameraZoomInHandle);
+            }
+
+            cameraZoomOutHandle = ZoomOutCamera();
+            StartCoroutine(cameraZoomOutHandle);
+
             moveSpeed *= 2;
         }
         else if (context.canceled)
         {
+            if (cameraZoomOutHandle != null)
+            {
+                StopCoroutine(cameraZoomOutHandle);
+            }
+
+            cameraZoomInHandle = ZoomInCamera();
+            StartCoroutine(cameraZoomInHandle);
+
             moveSpeed /= 2;
         }
     }
