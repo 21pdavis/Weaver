@@ -80,6 +80,7 @@ public class PlayerMovement : MonoBehaviour
 
     public void Move(InputAction.CallbackContext context)
     {
+        // using performed instead of started here helps to detect for changes in how far the user is pushing the stick
         if (context.performed)
         {
             Vector2 inputDirection = context.ReadValue<Vector2>();
@@ -105,6 +106,19 @@ public class PlayerMovement : MonoBehaviour
             waitingForJump = true;
             verticalVelocity = jumpStrength;
             StartCoroutine(DisableJumpingWithDelay());
+        }
+    }
+
+    public void Sprint(InputAction.CallbackContext context)
+    {
+        // TODO: toggle vs hold to sprint
+        if (context.started)
+        {
+            moveSpeed *= 2;
+        }
+        else if (context.canceled)
+        {
+            moveSpeed /= 2;
         }
     }
 }
