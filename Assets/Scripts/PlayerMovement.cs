@@ -31,6 +31,10 @@ public class PlayerMovement : MonoBehaviour
     [Tooltip("How much the camera zooms out when sprinting.")]
     private float sprintZoomMultiplier;
 
+    [Header("References")]
+    [SerializeField]
+    private ParticleSystem sprintParticles;
+
     private CharacterController controller;
     private MeshRenderer meshRenderer;
 
@@ -162,6 +166,7 @@ public class PlayerMovement : MonoBehaviour
             cameraZoomOutHandle = ZoomOutCamera();
             StartCoroutine(cameraZoomOutHandle);
 
+            sprintParticles.Play();
             moveSpeed *= 2;
         }
         else if (context.canceled)
@@ -174,6 +179,7 @@ public class PlayerMovement : MonoBehaviour
             cameraZoomInHandle = ZoomInCamera();
             StartCoroutine(cameraZoomInHandle);
 
+            sprintParticles.Stop();
             moveSpeed /= 2;
         }
     }
