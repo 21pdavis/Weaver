@@ -155,7 +155,7 @@ public class PlayerMovement : MonoBehaviour
 
     public void Sprint(InputAction.CallbackContext context)
     {
-        // TODO: toggle vs hold to sprint
+        // TODO: toggle vs hold to sprint (see code below, can just add a toggle vs hold flag)
         if (context.started)
         {
             if (cameraZoomInHandle != null)
@@ -182,5 +182,38 @@ public class PlayerMovement : MonoBehaviour
             sprintParticles.Stop();
             moveSpeed /= 2;
         }
+
+
+        //if (context.started)
+        //{
+        //    if (!sprinting)
+        //    {
+        //        sprinting = true;
+        //        if (cameraZoomInHandle != null)
+        //        {
+        //            StopCoroutine(cameraZoomInHandle);
+        //        }
+
+        //        cameraZoomOutHandle = ZoomOutCamera();
+        //        StartCoroutine(cameraZoomOutHandle);
+
+        //        sprintParticles.Play();
+        //        moveSpeed *= 2;
+        //    }
+        //    else
+        //    {
+        //        sprinting = false;
+        //        if (cameraZoomOutHandle != null)
+        //        {
+        //            StopCoroutine(cameraZoomOutHandle);
+        //        }
+
+        //        cameraZoomInHandle = ZoomInCamera();
+        //        StartCoroutine(cameraZoomInHandle);
+
+        //        sprintParticles.Stop();
+        //        moveSpeed /= 2;
+        //    }
+        //}
     }
 }
