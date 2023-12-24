@@ -42,5 +42,8 @@ public class CompanionMovement : MonoBehaviour
             b: playerFollowPoint.TransformPoint(offset),
             t: followSpeed * Time.deltaTime
         );
+
+        // orient the companion to be in line with the player's forward
+        transform.forward = playerFollowPoint.forward;
     }
 }
