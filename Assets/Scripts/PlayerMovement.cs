@@ -41,8 +41,9 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 moveDirection;
     private float verticalVelocity;
     private float normalCameraOrthoSize;
-    private bool isGrounded;
+    private bool grounded;
     private bool waitingForJump;
+    private bool sprinting;
     private IEnumerator cameraZoomOutHandle;
     private IEnumerator cameraZoomInHandle;
 
@@ -55,7 +56,7 @@ public class PlayerMovement : MonoBehaviour
         moveDirection = Vector3.zero;
         verticalVelocity = -0.5f;
         normalCameraOrthoSize = virtualCamera.m_Lens.OrthographicSize;
-        isGrounded = true;
+        grounded = true;
         waitingForJump = false;
     }
 
@@ -63,6 +64,18 @@ public class PlayerMovement : MonoBehaviour
     void Update()
     {
         UpdateIsGrounded();
+
+        if (sprinting)
+        {
+            if (!grounded && sprintParticles.isPlaying)
+            {
+                sprintParticles.Stop();
+            }
+            else if (grounded && !sprintParticles.isPlaying)
+            {
+                sprintParticles.Play();
+            }
+        }
 
         controller.Move(moveSpeed * Time.deltaTime * moveDirection + verticalVelocity * Time.deltaTime * Vector3.up);
 
@@ -84,12 +97,12 @@ public class PlayerMovement : MonoBehaviour
         // raycast down to check if grounded
         Bounds meshBounds = meshRenderer.bounds;
         Ray ray = new Ray(meshBounds.center, Vector3.down);
-        isGrounded = Physics.Raycast(ray, meshBounds.size.y / 2 + 0.1f);
+        grounded = Physics.Raycast(ray, meshBounds.size.y / 2 + 0.1f);
     }
 
     private void UpdateGravity()
     {
-        if (isGrounded && !waitingForJump)
+        if (grounded && !waitingForJump)
         {
             verticalVelocity = -0.5f;
         }
@@ -123,7 +136,7 @@ public class PlayerMovement : MonoBehaviour
 
     public void Jump(InputAction.CallbackContext context)
     {
-        if (context.started && isGrounded)
+        if (context.started && grounded)
         {
             waitingForJump = true;
             verticalVelocity = jumpStrength;
@@ -158,6 +171,8 @@ public class PlayerMovement : MonoBehaviour
         // TODO: toggle vs hold to sprint (see code below, can just add a toggle vs hold flag)
         if (context.started)
         {
+            sprinting = true;
+
             if (cameraZoomInHandle != null)
             {
                 StopCoroutine(cameraZoomInHandle);
@@ -171,6 +186,8 @@ public class PlayerMovement : MonoBehaviour
         }
         else if (context.canceled)
         {
+            sprinting = false;
+
             if (cameraZoomOutHandle != null)
             {
                 StopCoroutine(cameraZoomOutHandle);
