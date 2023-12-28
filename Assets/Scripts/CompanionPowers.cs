@@ -4,7 +4,40 @@ using UnityEngine.InputSystem;
 
 public class CompanionPowers : MonoBehaviour
 {
-    // refactor to selecting a power?
+    [Header("Suspend Options")]
+    [SerializeField]
+    private float suspendDuration;
+
+    [SerializeField]
+    private float suspendHeight;
+
+    private IEnumerator ReEnableNavMeshOnGrounded(GameObject suspendTarget)
+    {
+        bool grounded = false;
+        MeshRenderer targetMeshRenderer = suspendTarget.GetComponent<MeshRenderer>();
+
+        while (!grounded)
+        {
+            Debug.Log("Checking Grounded");
+            grounded = Physics.Raycast(targetMeshRenderer.bounds.center, targetMeshRenderer.bounds.center + (targetMeshRenderer.bounds.size.y / 2 + 0.1f) * Vector3.down);
+            Debug.DrawRay(targetMeshRenderer.bounds.center, (targetMeshRenderer.bounds.size.y / 2 + 0.1f) * Vector3.down, Color.red, .1f);
+            yield return null;
+        }
+
+        Debug.Log("Re-enabling nav mesh agent");
+        suspendTarget.GetComponent<EnemyMovement>().navMeshAgent.enabled = true;
+        // TODO: maybe delete this?
+        suspendTarget.transform.rotation = Quaternion.identity;
+    }
+
+    private IEnumerator CancelSuspendAfterDelay(GameObject suspendTarget)
+    {
+        yield return new WaitForSeconds(suspendDuration);
+        suspendTarget.GetComponent<Rigidbody>().useGravity = true;
+        StartCoroutine(ReEnableNavMeshOnGrounded(suspendTarget));
+    }
+
+    // TODO: refactor to activate selected power?
     public void Suspend(InputAction.CallbackContext context)
     {
         if (!context.started)
@@ -19,9 +52,20 @@ public class CompanionPowers : MonoBehaviour
             Collider[] colliders = Physics.OverlapSphere(hit.point, 5f, LayerMask.GetMask("Enemy"));
             if (colliders.Length > 0)
             {
-                colliders[0].GetComponent<EnemyMovement>().navMeshAgent.enabled = false;
-                colliders[0].transform.position += new Vector3(0, 5f, 0);
-                colliders[0].transform.Rotate(45f, 0, 0f, Space.Self);
+                GameObject target = colliders[0].gameObject;
+                Transform targetTransform = target.transform;
+                Rigidbody targetRb = target.GetComponent<Rigidbody>();
+
+                target.GetComponent<EnemyMovement>().navMeshAgent.enabled = false;
+                targetTransform.position += new Vector3(0, suspendHeight, 0);
+                targetTransform.Rotate(45f, 0, 0f, Space.Self);
+
+                // need to zero velocities and disable gravity to prevent the enemy from having "left over" velocity from moving/previous suspend etc.
+                targetRb.velocity = Vector3.zero;
+                targetRb.angularVelocity = Vector3.zero;
+                targetRb.useGravity = false;
+
+                StartCoroutine(CancelSuspendAfterDelay(target));
             }
         }
     }
