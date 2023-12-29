@@ -26,8 +26,9 @@ public class CompanionPowers : MonoBehaviour
 
         Debug.Log("Re-enabling nav mesh agent");
         suspendTarget.GetComponent<EnemyMovement>().navMeshAgent.enabled = true;
-        // TODO: maybe delete this?
-        suspendTarget.transform.rotation = Quaternion.identity;
+        // TODO: should point at player, not companion ideally
+        suspendTarget.transform.rotation = Quaternion.LookRotation(transform.position - suspendTarget.transform.position);
+        suspendTarget.GetComponent<Rigidbody>().isKinematic = true;
     }
 
     private IEnumerator CancelSuspendAfterDelay(GameObject suspendTarget)
@@ -64,6 +65,7 @@ public class CompanionPowers : MonoBehaviour
                 targetTransform.Rotate(-45f, 0, 0f, Space.Self);
 
                 // need to zero velocities and disable gravity to prevent the enemy from having "left over" velocity from moving/previous suspend etc.
+                targetRb.isKinematic = false;
                 targetRb.velocity = Vector3.zero;
                 targetRb.angularVelocity = -0.25f * targetTransform.right;
                 targetRb.useGravity = false;
