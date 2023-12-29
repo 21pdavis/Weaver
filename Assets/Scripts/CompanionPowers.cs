@@ -11,7 +11,15 @@ public class CompanionPowers : MonoBehaviour
     [SerializeField]
     private float suspendHeight;
 
+    [SerializeField]
+    private float suspendRaiseSpeed;
+
+    [Header("References")]
+    [SerializeField]
+    private ParticleSystem suspendParticles;
+
     private CompanionMovement companionMovement;
+    private GameObject activeSuspendParticles;
 
     private void Start()
     {
@@ -43,6 +51,17 @@ public class CompanionPowers : MonoBehaviour
         Rigidbody targetRb = suspendTarget.GetComponent<Rigidbody>();
         targetRb.useGravity = true;
         targetRb.angularVelocity = -5f * suspendTarget.transform.right;
+
+        IEnumerator DestroyParticlesAfterDelay()
+        {
+            yield return new WaitForSeconds(5f);
+            Destroy(activeSuspendParticles);
+        }
+
+        ParticleSystem.EmissionModule emission = activeSuspendParticles.GetComponent<ParticleSystem>().emission;
+        emission.enabled = false;
+
+        StartCoroutine(DestroyParticlesAfterDelay());
         StartCoroutine(ReEnableNavMeshOnGrounded(suspendTarget));
     }
 
@@ -55,23 +74,50 @@ public class CompanionPowers : MonoBehaviour
     /// <returns></returns>
     private IEnumerator SuspendObjectWithCompanionFlight(GameObject suspendTarget, Vector3 startPosition, Vector3 endPosition)
     {
-        Vector3 currPosition = startPosition;
+        // determine where companion should start for spiral around target
+        MeshRenderer targetMeshRenderer = suspendTarget.GetComponent<MeshRenderer>();
+        Vector3 flattenedTargetForward = new Vector3(suspendTarget.transform.forward.x, 0f, suspendTarget.transform.forward.z).normalized;
+        Vector3 companionStartPosition = suspendTarget.transform.position
+            + (targetMeshRenderer.bounds.size.y / 2f) * Vector3.down
+            + (targetMeshRenderer.bounds.size.z / 1.5f) * flattenedTargetForward;
 
-        // TODO: smooth initial companion movement
-        transform.position = suspendTarget.transform.position + (suspendTarget.GetComponent<MeshRenderer>().bounds.size.y / 2) * Vector3.down;
-
-        while (endPosition.y - currPosition.y > 0.1f)
+        // smoothly move companion to starting position
+        while (Vector3.Distance(companionStartPosition, transform.position) > 0.1f)
         {
-            //currPosition = Vector3.MoveTowards(currPosition, endPosition, 5f * Time.deltaTime);
-            currPosition = Vector3.Lerp(currPosition, endPosition, 5f * Time.deltaTime);
-            suspendTarget.transform.position = currPosition;
-            transform.position = currPosition - suspendTarget.GetComponent<MeshRenderer>().bounds.size.y / 1.5f * Vector3.up;
+            // TODO: use suspendRaiseSpeed here?
+            transform.position = Vector3.MoveTowards(transform.position, companionStartPosition, 7.5f * suspendRaiseSpeed * Time.deltaTime);
             yield return new WaitForEndOfFrame();
         }
 
-        // TODO: need to re-attach to player after completing the animation (make this look nicer)
-        companionMovement.enabled = true;
+        // for some reason, have to use "this" here, I think it's a compiler bug...? Probably not a bug, but I don't understand it
+        activeSuspendParticles = Instantiate(this.suspendParticles.gameObject, startPosition, Quaternion.Euler(-90f, 0f, 0f));
 
+        Vector3 currTargetPosition = startPosition;
+        //Vector3 currCompanionPosition = transform.position;
+        // gradual raising of target happens here
+        while (endPosition.y - currTargetPosition.y > 0.1f)
+        {
+            //currPosition = Vector3.MoveTowards(currPosition, endPosition, 15f * Time.deltaTime);
+            currTargetPosition = Vector3.Lerp(currTargetPosition, endPosition, suspendRaiseSpeed * Time.deltaTime);
+
+            // raise target 
+            suspendTarget.transform.position = currTargetPosition;
+
+            // advance companion on upward spiral based on how much we've raised the target
+            float radians = Mathf.Deg2Rad * ((currTargetPosition.y - startPosition.y) / suspendHeight) * 360f;
+            Vector3 unitCircleVector = new Vector3(-Mathf.Sin(radians), 0f, Mathf.Cos(radians));
+            Vector3 currCompanionPosition = startPosition + unitCircleVector;
+            // now lift companion up to target's height
+            currCompanionPosition.y += (currTargetPosition - startPosition).y;
+            // offset down by 1/2 height of target
+            currCompanionPosition.y -= targetMeshRenderer.bounds.size.y / 2f;
+
+            transform.position = currCompanionPosition;
+
+            yield return new WaitForEndOfFrame();
+        }
+
+        companionMovement.enabled = true;
         StartCoroutine(CancelSuspendAfterDelay(suspendTarget));
     }
 

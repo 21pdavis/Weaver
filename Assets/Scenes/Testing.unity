@@ -1053,6 +1053,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   suspendDuration: 2.5
   suspendHeight: 5
+  suspendRaiseSpeed: 5
+  suspendParticles: {fileID: 1660545110726748076, guid: 077c1b334a506284fa731622ac9a64a1,
+    type: 3}
 --- !u!4 &1584482826 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7174144210740906228, guid: 8c1fe89879df0a44fbd19462e022fbc8,
