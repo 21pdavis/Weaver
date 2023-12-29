@@ -17,6 +17,7 @@ public class CompanionMovement : MonoBehaviour
     private float orbitRadius;
 
     private float pointOnUnitCircle;
+    public bool shouldOrbit { private get; set; }
 
     // Start is called before the first frame update
     void Start()
