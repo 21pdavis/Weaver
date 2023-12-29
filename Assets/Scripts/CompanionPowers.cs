@@ -18,13 +18,11 @@ public class CompanionPowers : MonoBehaviour
 
         while (!grounded)
         {
-            Debug.Log("Checking Grounded");
             grounded = Physics.Raycast(targetMeshRenderer.bounds.center, targetMeshRenderer.bounds.center + (targetMeshRenderer.bounds.size.y / 2 + 0.1f) * Vector3.down);
             Debug.DrawRay(targetMeshRenderer.bounds.center, (targetMeshRenderer.bounds.size.y / 2 + 0.1f) * Vector3.down, Color.red, .1f);
             yield return null;
         }
 
-        Debug.Log("Re-enabling nav mesh agent");
         suspendTarget.GetComponent<EnemyMovement>().navMeshAgent.enabled = true;
         // TODO: should point at player, not companion ideally
         suspendTarget.transform.rotation = Quaternion.LookRotation(transform.position - suspendTarget.transform.position);
