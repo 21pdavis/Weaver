@@ -145,7 +145,11 @@ public class CompanionPowers : MonoBehaviour
             {
                 currentlySuspending = true;
 
-                GameObject suspendTarget = colliders[0].gameObject;
+                GameObject suspendTarget = colliders
+                    .OrderBy(collider => Vector3.Distance(hit.point, collider.transform.position))
+                    .First()
+                    .gameObject;
+
                 Rigidbody targetRb = suspendTarget.GetComponent<Rigidbody>();
 
                 // place companion at base of target's mesh before suspending it
