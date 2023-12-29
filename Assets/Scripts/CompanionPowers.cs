@@ -20,10 +20,12 @@ public class CompanionPowers : MonoBehaviour
 
     private CompanionMovement companionMovement;
     private GameObject activeSuspendParticles;
+    bool currentlySuspending;
 
     private void Start()
     {
         companionMovement = GetComponent<CompanionMovement>();
+        currentlySuspending = false;
     }
 
     private IEnumerator ReEnableNavMeshOnGrounded(GameObject suspendTarget)
@@ -34,11 +36,11 @@ public class CompanionPowers : MonoBehaviour
         while (!grounded)
         {
             grounded = Physics.Raycast(targetMeshRenderer.bounds.center, targetMeshRenderer.bounds.center + (targetMeshRenderer.bounds.size.y / 2 + 0.1f) * Vector3.down);
-            Debug.DrawRay(targetMeshRenderer.bounds.center, (targetMeshRenderer.bounds.size.y / 2 + 0.1f) * Vector3.down, Color.red, .1f);
             yield return null;
         }
 
         suspendTarget.GetComponent<EnemyMovement>().navMeshAgent.enabled = true;
+
         // TODO: should point at player, not companion ideally
         suspendTarget.transform.rotation = Quaternion.LookRotation(transform.position - suspendTarget.transform.position);
         suspendTarget.GetComponent<Rigidbody>().isKinematic = true;
@@ -48,20 +50,22 @@ public class CompanionPowers : MonoBehaviour
     {
         yield return new WaitForSeconds(suspendDuration);
 
+        currentlySuspending = false;
+
         Rigidbody targetRb = suspendTarget.GetComponent<Rigidbody>();
         targetRb.useGravity = true;
         targetRb.angularVelocity = -5f * suspendTarget.transform.right;
 
-        IEnumerator DestroyParticlesAfterDelay()
+        IEnumerator DestroyParticlesAfterDelay(GameObject particles)
         {
             yield return new WaitForSeconds(5f);
-            Destroy(activeSuspendParticles);
+            Destroy(particles);
         }
 
         ParticleSystem.EmissionModule emission = activeSuspendParticles.GetComponent<ParticleSystem>().emission;
         emission.enabled = false;
 
-        StartCoroutine(DestroyParticlesAfterDelay());
+        StartCoroutine(DestroyParticlesAfterDelay(activeSuspendParticles));
         StartCoroutine(ReEnableNavMeshOnGrounded(suspendTarget));
     }
 
@@ -84,13 +88,14 @@ public class CompanionPowers : MonoBehaviour
         // smoothly move companion to starting position
         while (Vector3.Distance(companionStartPosition, transform.position) > 0.1f)
         {
-            // TODO: use suspendRaiseSpeed here?
+            // currently using a magic number for speed, is okay for now
             transform.position = Vector3.MoveTowards(transform.position, companionStartPosition, 7.5f * suspendRaiseSpeed * Time.deltaTime);
             yield return new WaitForEndOfFrame();
         }
 
         // for some reason, have to use "this" here, I think it's a compiler bug...? Probably not a bug, but I don't understand it
-        activeSuspendParticles = Instantiate(this.suspendParticles.gameObject, startPosition, Quaternion.Euler(-90f, 0f, 0f));
+        Vector3 particleStartPosition = suspendTarget.transform.position + (targetMeshRenderer.bounds.size.y / 2f) * Vector3.down;
+        activeSuspendParticles = Instantiate(this.suspendParticles.gameObject, particleStartPosition, Quaternion.Euler(-90f, 0f, 0f));
 
         Vector3 currTargetPosition = startPosition;
         //Vector3 currCompanionPosition = transform.position;
@@ -107,8 +112,10 @@ public class CompanionPowers : MonoBehaviour
             float radians = Mathf.Deg2Rad * ((currTargetPosition.y - startPosition.y) / suspendHeight) * 360f;
             Vector3 unitCircleVector = new Vector3(-Mathf.Sin(radians), 0f, Mathf.Cos(radians));
             Vector3 currCompanionPosition = startPosition + unitCircleVector;
+
             // now lift companion up to target's height
             currCompanionPosition.y += (currTargetPosition - startPosition).y;
+
             // offset down by 1/2 height of target
             currCompanionPosition.y -= targetMeshRenderer.bounds.size.y / 2f;
 
@@ -124,7 +131,7 @@ public class CompanionPowers : MonoBehaviour
     // TODO: refactor to activate selected power?
     public void Suspend(InputAction.CallbackContext context)
     {
-        if (!context.started)
+        if (!context.started || currentlySuspending)
             return;
 
         // TODO: figure out gamepad controls for this, too (need to reconcile lock-on with mouse)
@@ -136,6 +143,8 @@ public class CompanionPowers : MonoBehaviour
             Collider[] colliders = Physics.OverlapSphere(hit.point, 5f, LayerMask.GetMask("Enemy"));
             if (colliders.Length > 0)
             {
+                currentlySuspending = true;
+
                 GameObject suspendTarget = colliders[0].gameObject;
                 Rigidbody targetRb = suspendTarget.GetComponent<Rigidbody>();
 
