@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -21,6 +23,7 @@ public class CompanionPowers : MonoBehaviour
     private CompanionMovement companionMovement;
     private GameObject activeSuspendParticles;
     bool currentlySuspending;
+    private List<GameObject> objectsSuspended;
 
     private void Start()
     {
@@ -52,7 +55,9 @@ public class CompanionPowers : MonoBehaviour
 
         currentlySuspending = false;
 
+        // TODO: figure out weird lingering velocity issue
         Rigidbody targetRb = suspendTarget.GetComponent<Rigidbody>();
+        targetRb.velocity = Vector3.zero;
         targetRb.useGravity = true;
         targetRb.angularVelocity = -5f * suspendTarget.transform.right;
 
@@ -95,10 +100,9 @@ public class CompanionPowers : MonoBehaviour
 
         // for some reason, have to use "this" here, I think it's a compiler bug...? Probably not a bug, but I don't understand it
         Vector3 particleStartPosition = suspendTarget.transform.position + (targetMeshRenderer.bounds.size.y / 2f) * Vector3.down;
-        activeSuspendParticles = Instantiate(this.suspendParticles.gameObject, particleStartPosition, Quaternion.Euler(-90f, 0f, 0f));
+        activeSuspendParticles = Instantiate(suspendParticles.gameObject, particleStartPosition, Quaternion.Euler(-90f, 0f, 0f));
 
         Vector3 currTargetPosition = startPosition;
-        //Vector3 currCompanionPosition = transform.position;
         // gradual raising of target happens here
         while (endPosition.y - currTargetPosition.y > 0.1f)
         {
@@ -124,6 +128,7 @@ public class CompanionPowers : MonoBehaviour
             yield return new WaitForEndOfFrame();
         }
 
+        suspendTarget.GetComponent<Collider>().enabled = true;
         companionMovement.enabled = true;
         StartCoroutine(CancelSuspendAfterDelay(suspendTarget));
     }
@@ -131,6 +136,7 @@ public class CompanionPowers : MonoBehaviour
     // TODO: refactor to activate selected power?
     public void Suspend(InputAction.CallbackContext context)
     {
+        // TODO: per-enemy currentlySuspending as opposed to global (so we can suspend multiple enemies at once)
         if (!context.started || currentlySuspending)
             return;
 
@@ -159,7 +165,9 @@ public class CompanionPowers : MonoBehaviour
                 suspendTarget.GetComponent<EnemyMovement>().navMeshAgent.enabled = false;
 
                 // need to zero velocities and disable gravity to prevent the enemy from having "left over" velocity from moving/previous suspend etc.
-                targetRb.isKinematic = false;
+                suspendTarget.GetComponent<Rigidbody>().isKinematic = false;
+                // disable collider to prevent collision with player/other enemies during raise up to max suspend height*
+                suspendTarget.GetComponent<Collider>().enabled = false;
                 targetRb.velocity = Vector3.zero;
                 targetRb.angularVelocity = -0.25f * suspendTarget.transform.right;
                 targetRb.useGravity = false;
