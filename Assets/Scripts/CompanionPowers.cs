@@ -33,7 +33,10 @@ public class CompanionPowers : MonoBehaviour
     private IEnumerator CancelSuspendAfterDelay(GameObject suspendTarget)
     {
         yield return new WaitForSeconds(suspendDuration);
-        suspendTarget.GetComponent<Rigidbody>().useGravity = true;
+
+        Rigidbody targetRb = suspendTarget.GetComponent<Rigidbody>();
+        targetRb.useGravity = true;
+        targetRb.angularVelocity = -5f * suspendTarget.transform.right;
         StartCoroutine(ReEnableNavMeshOnGrounded(suspendTarget));
     }
 
@@ -52,20 +55,20 @@ public class CompanionPowers : MonoBehaviour
             Collider[] colliders = Physics.OverlapSphere(hit.point, 5f, LayerMask.GetMask("Enemy"));
             if (colliders.Length > 0)
             {
-                GameObject target = colliders[0].gameObject;
-                Transform targetTransform = target.transform;
-                Rigidbody targetRb = target.GetComponent<Rigidbody>();
+                GameObject suspendTarget = colliders[0].gameObject;
+                Transform targetTransform = suspendTarget.transform;
+                Rigidbody targetRb = suspendTarget.GetComponent<Rigidbody>();
 
-                target.GetComponent<EnemyMovement>().navMeshAgent.enabled = false;
+                suspendTarget.GetComponent<EnemyMovement>().navMeshAgent.enabled = false;
                 targetTransform.position += new Vector3(0, suspendHeight, 0);
-                targetTransform.Rotate(45f, 0, 0f, Space.Self);
+                targetTransform.Rotate(-45f, 0, 0f, Space.Self);
 
                 // need to zero velocities and disable gravity to prevent the enemy from having "left over" velocity from moving/previous suspend etc.
                 targetRb.velocity = Vector3.zero;
-                targetRb.angularVelocity = Vector3.zero;
+                targetRb.angularVelocity = -0.25f * targetTransform.right;
                 targetRb.useGravity = false;
 
-                StartCoroutine(CancelSuspendAfterDelay(target));
+                StartCoroutine(CancelSuspendAfterDelay(suspendTarget));
             }
         }
     }
