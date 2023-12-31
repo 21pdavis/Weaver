@@ -123,6 +123,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7768ea457f4b4d4db2f279a0696d61f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  distanceFromPlayer: 10
 --- !u!195 &7433923699336082238
 NavMeshAgent:
   m_ObjectHideFlags: 0

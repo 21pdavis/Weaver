@@ -3,6 +3,9 @@ using UnityEngine.AI;
 
 public class EnemyMovement : MonoBehaviour
 {
+    [SerializeField]
+    private float distanceFromPlayer;
+
     private Transform target;
     public NavMeshAgent navMeshAgent { get; private set; }
 
@@ -17,7 +20,13 @@ public class EnemyMovement : MonoBehaviour
     {
         if (navMeshAgent.enabled)
         {
-           navMeshAgent.SetDestination(target.transform.position);
+           navMeshAgent.SetDestination(
+               Vector3.Distance(target.transform.position, transform.position) > distanceFromPlayer
+               ?
+               target.transform.position
+               :
+               target.transform.position + distanceFromPlayer * (transform.position - target.transform.position).normalized
+           );
         }
     }
 }
