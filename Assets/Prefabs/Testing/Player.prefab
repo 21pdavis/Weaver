@@ -393,6 +393,7 @@ GameObject:
   - component: {fileID: 2974317331624625898}
   - component: {fileID: 3294689668685403219}
   - component: {fileID: 2645658388662858046}
+  - component: {fileID: 1426808774058669987}
   - component: {fileID: 411917610014809981}
   - component: {fileID: 6602996740451177734}
   - component: {fileID: 6248998490996292303}
@@ -512,6 +513,25 @@ MonoBehaviour:
   sprintZoomSpeed: 20
   sprintZoomMultiplier: 1.1
   sprintParticles: {fileID: 8846328329242291761}
+--- !u!114 &1426808774058669987
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7357430014966176892}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f6d003cb06bcf84487c5058dd949f55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  startNeedles: 3
+  spreadHorizontal: 3
+  spreadVertical: 1.5
+  distanceFromPlayer: 0.5
+  followSpeed: 10
+  needlePrefab: {fileID: 5752439979774456800, guid: 32f498d85b33ca044b3dc5c5693dd49f,
+    type: 3}
 --- !u!143 &411917610014809981
 CharacterController:
   m_ObjectHideFlags: 0
@@ -613,9 +633,37 @@ MonoBehaviour:
     m_ActionId: 10491565-df6d-45d5-bd88-f00723347ec0
     m_ActionName: PlayerMain/Sprint[/Keyboard/shift]
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 0}
+        m_TargetAssemblyTypeName: CompanionPowers, Assembly-CSharp
+        m_MethodName: Suspend
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: fd9c58f7-1552-402c-8ea2-4a3335e55a5f
     m_ActionName: PlayerMain/Suspend[/Keyboard/f,/DualShock4GamepadHID/buttonNorth]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1426808774058669987}
+        m_TargetAssemblyTypeName: PlayerNeedles, Assembly-CSharp
+        m_MethodName: Fire
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: dbf7b341-7452-45a7-b403-6f4015291282
+    m_ActionName: PlayerMain/Fire[/Mouse/leftButton]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: PlayerMain

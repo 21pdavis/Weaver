@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3067785515421344762}
   - component: {fileID: 1995233769251587630}
   - component: {fileID: 72163798341147582}
+  - component: {fileID: 3878632993859209108}
   - component: {fileID: 403110249853726601}
   m_Layer: 0
   m_Name: Companion
@@ -28,7 +29,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2128125856072788510}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.95, y: 2.328, z: 1.36}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 0
@@ -102,6 +103,23 @@ MonoBehaviour:
   followSpeed: 7.5
   orbitDegreesPerSecond: 180
   orbitRadius: 0.75
+--- !u!114 &3878632993859209108
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2128125856072788510}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee2a72e7d269b154a899f5628b37e992, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  suspendDuration: 2.5
+  suspendHeight: 5
+  suspendRaiseSpeed: 5
+  suspendParticles: {fileID: 1660545110726748076, guid: 077c1b334a506284fa731622ac9a64a1,
+    type: 3}
 --- !u!96 &403110249853726601
 TrailRenderer:
   serializedVersion: 3
