@@ -42,7 +42,7 @@ public class CompanionPowers : MonoBehaviour
             yield return null;
         }
 
-        suspendTarget.GetComponent<EnemyMovement>().navMeshAgent.enabled = true;
+        suspendTarget.transform.parent.GetComponent<EnemyMovement>().navMeshAgent.enabled = true;
 
         // TODO: should point at player, not companion ideally
         suspendTarget.transform.rotation = Quaternion.LookRotation(transform.position - suspendTarget.transform.position);
@@ -162,7 +162,7 @@ public class CompanionPowers : MonoBehaviour
                 companionMovement.enabled = false; // disable companion movement while suspended
 
                 // disable navmesh to allow direct transform manipulation
-                suspendTarget.GetComponent<EnemyMovement>().navMeshAgent.enabled = false;
+                suspendTarget.transform.parent.GetComponent<EnemyMovement>().navMeshAgent.enabled = false;
 
                 // need to zero velocities and disable gravity to prevent the enemy from having "left over" velocity from moving/previous suspend etc.
                 suspendTarget.GetComponent<Rigidbody>().isKinematic = false;
