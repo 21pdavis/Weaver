@@ -45,6 +45,7 @@ public class PlayerMovement : MonoBehaviour
     private MeshRenderer meshRenderer;
 
     private Vector3 moveDirection;
+    private Vector3 firstPersonLookDirection;
     private float verticalVelocity;
     private float normalCameraLensSize;
     private bool grounded;
@@ -93,6 +94,11 @@ public class PlayerMovement : MonoBehaviour
             Quaternion targetRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
             // TODO: Determine if I want to lerp or not here (probably not for more responsive movement)
             transform.rotation = targetRotation;
+        }
+        else if (!Isometric)
+        {
+            transform.Rotate(Time.deltaTime * new Vector3(0f, firstPersonLookDirection.x, 0f), Space.World);
+            transform.Rotate(Time.deltaTime * new Vector3(-firstPersonLookDirection.y, 0f, 0f), Space.Self);
         }
     }
 
@@ -162,6 +168,21 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    public void Look(InputAction.CallbackContext context)
+    {
+        if (Isometric)
+            return;
+
+        if (context.performed)
+        {
+           firstPersonLookDirection = context.ReadValue<Vector2>();
+        }
+        else if (context.canceled)
+        {
+            firstPersonLookDirection = Vector3.zero;
+        }
+    }
+
     private IEnumerator DisableJumpingWithDelay()
     {
         yield return new WaitForSeconds(0.1f);
@@ -198,14 +219,6 @@ public class PlayerMovement : MonoBehaviour
         }
 
         virtualCamera.m_Lens.OrthographicSize = normalCameraLensSize;
-    }
-
-    public void DebugCameraSwitch(InputAction.CallbackContext context)
-    {
-        if (!context.started)
-            return;
-
-        
     }
 
     public void Sprint(InputAction.CallbackContext context)
