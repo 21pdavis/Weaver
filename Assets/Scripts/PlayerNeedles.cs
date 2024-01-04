@@ -126,7 +126,6 @@ public class PlayerNeedles : MonoBehaviour
             if (targetObj != null)
             {
                 MeshRenderer targetMeshRenderer = targetObj.GetComponent<MeshRenderer>();
-                //targetPoint = (hitPoint + targetMeshRenderer.bounds.center) * 0.5f;
                 targetPoint = targetMeshRenderer.bounds.center;
             }
             yield return null;
@@ -141,7 +140,7 @@ public class PlayerNeedles : MonoBehaviour
 
     public void Fire(InputAction.CallbackContext context)
     {
-        if (!context.started)
+        if (!context.started || Needles.Count == 0)
             return;
 
         // TODO: minimum radius around player to fire
