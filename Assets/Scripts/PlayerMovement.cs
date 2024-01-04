@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 using Cinemachine;
 
 [RequireComponent(typeof(CharacterController))]
-public class FirstPersonPlayerMovement : MonoBehaviour
+public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement Options")]
     [SerializeField]
@@ -29,12 +29,17 @@ public class FirstPersonPlayerMovement : MonoBehaviour
     private float sprintZoomMultiplier;
 
     [Header("References")]
-    //[SerializeField]
-    //[Tooltip("The physical object that represents the player")]
-    //private GameObject playerObject;
+    [SerializeField]
+    [Tooltip("The physical object that represents the player")]
+    private GameObject playerObject;
 
     [SerializeField]
     private ParticleSystem sprintParticles;
+
+    /// <summary>
+    /// <c>true</c> if in isometric camera mode, <c>false</c> if in first-person mode.
+    /// </summary>
+    public bool Isometric { get; set; }
 
     private CharacterController controller;
     private MeshRenderer meshRenderer;
@@ -52,7 +57,9 @@ public class FirstPersonPlayerMovement : MonoBehaviour
     void Start()
     {
         controller = GetComponent<CharacterController>();
-        //meshRenderer = playerObject.GetComponent<MeshRenderer>();
+        meshRenderer = playerObject.GetComponent<MeshRenderer>();
+
+        Isometric = true;
 
         moveDirection = Vector3.zero;
         verticalVelocity = -0.5f;
@@ -81,11 +88,10 @@ public class FirstPersonPlayerMovement : MonoBehaviour
         controller.Move(moveSpeed * Time.deltaTime * moveDirection + verticalVelocity * Time.deltaTime * Vector3.up);
 
         // rotate character in direction of movement
-        if (moveDirection != Vector3.zero)
+        if (Isometric && moveDirection != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
             // TODO: Determine if I want to lerp or not here (probably not for more responsive movement)
-            //transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
             transform.rotation = targetRotation;
         }
     }
@@ -116,7 +122,7 @@ public class FirstPersonPlayerMovement : MonoBehaviour
         }
     }
 
-    public void Move(InputAction.CallbackContext context)
+    private void MoveIsometric(InputAction.CallbackContext context)
     {
         // using performed instead of started here helps to detect for changes in how far the user is pushing the stick
         if (context.performed)
@@ -128,6 +134,31 @@ public class FirstPersonPlayerMovement : MonoBehaviour
         else if (context.canceled)
         {
             moveDirection = Vector3.zero;
+        }
+    }
+
+    private void MoveFirstPerson(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            Vector2 inputDirection = context.ReadValue<Vector2>();
+            moveDirection = Camera.main.transform.TransformDirection(new Vector3(inputDirection.x, 0, inputDirection.y));
+        }
+        else if (context.canceled)
+        {
+            moveDirection = Vector3.zero;
+        }
+    }
+
+    public void Move(InputAction.CallbackContext context)
+    {
+        if (Isometric)
+        {
+            MoveIsometric(context);
+        }
+        else
+        {
+            MoveFirstPerson(context);
         }
     }
 
@@ -167,6 +198,14 @@ public class FirstPersonPlayerMovement : MonoBehaviour
         }
 
         virtualCamera.m_Lens.OrthographicSize = normalCameraLensSize;
+    }
+
+    public void DebugCameraSwitch(InputAction.CallbackContext context)
+    {
+        if (!context.started)
+            return;
+
+        
     }
 
     public void Sprint(InputAction.CallbackContext context)

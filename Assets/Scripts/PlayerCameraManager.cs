@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Cinemachine;
 
 public class PlayerCameraManager : MonoBehaviour
 {
@@ -9,31 +10,21 @@ public class PlayerCameraManager : MonoBehaviour
         Isometric
     }
 
+    [Header("References")]
+    [SerializeField]
+    private CinemachineVirtualCamera isometricCamera;
+
+    [SerializeField]
+    private CinemachineVirtualCamera firstPersonCamera;
+
+    [SerializeField]
+    private GameObject HUD;
+
     private CameraMode mode;
 
     private void Start()
     {
         mode = CameraMode.Isometric;
-    }
-
-    private void ToFirstPerson()
-    {
-
-    }
-
-    private void FromFirstPerson()
-    {
-
-    }
-
-    private void ToIsometric()
-    {
-
-    }
-
-    private void FromIsometric()
-    {
-
     }
 
     public void DebugCameraSwitch(InputAction.CallbackContext context)
@@ -45,15 +36,41 @@ public class PlayerCameraManager : MonoBehaviour
 
         switch (mode)
         {
+            // changing to isometric
             case CameraMode.FirstPerson:
                 mode = CameraMode.Isometric;
-                FromFirstPerson();
-                ToIsometric();
+
+                // transition camera
+                firstPersonCamera.gameObject.SetActive(false);
+                isometricCamera.gameObject.SetActive(true);
+
+                // change movement mode
+                GetComponent<PlayerMovement>().Isometric = true;
+
+                // unlock cursor
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = false;
+                HUD.SetActive(false);
+
+                Camera.main.orthographic = false;
                 break;
+            // changing to first person
             case CameraMode.Isometric:
                 mode = CameraMode.FirstPerson;
-                FromIsometric();
-                ToFirstPerson();
+
+                // transition camera
+                firstPersonCamera.gameObject.SetActive(true);
+                isometricCamera.gameObject.SetActive(false);
+
+                // change movement mode
+                GetComponent<PlayerMovement>().Isometric = false;
+
+                // lock cursor
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = true;
+                HUD.SetActive(true);
+
+                Camera.main.orthographic = false;
                 break;
             default:
                 break;
