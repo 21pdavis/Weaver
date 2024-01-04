@@ -33,6 +33,10 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("References")]
     [SerializeField]
+    [Tooltip("The physical object that represents the player")]
+    private GameObject playerObject;
+
+    [SerializeField]
     private ParticleSystem sprintParticles;
 
     private CharacterController controller;
@@ -51,7 +55,7 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         controller = GetComponent<CharacterController>();
-        meshRenderer = GetComponent<MeshRenderer>();
+        meshRenderer = playerObject.GetComponent<MeshRenderer>();
 
         moveDirection = Vector3.zero;
         verticalVelocity = -0.5f;

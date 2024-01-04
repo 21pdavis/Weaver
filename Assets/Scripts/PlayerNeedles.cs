@@ -29,6 +29,9 @@ public class PlayerNeedles : MonoBehaviour
 
     [Header("References")]
     [SerializeField]
+    private GameObject playerObject;
+
+    [SerializeField]
     private GameObject needlePrefab;
 
     public List<GameObject> Needles { get; set; }
@@ -44,7 +47,7 @@ public class PlayerNeedles : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        meshRenderer = GetComponent<MeshRenderer>();
+        meshRenderer = playerObject.GetComponent<MeshRenderer>();
         UpdateAnchors();
 
         // initial needle positions
