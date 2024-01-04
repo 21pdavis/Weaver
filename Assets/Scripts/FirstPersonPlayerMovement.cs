@@ -4,14 +4,11 @@ using UnityEngine.InputSystem;
 using Cinemachine;
 
 [RequireComponent(typeof(CharacterController))]
-public class PlayerMovement : MonoBehaviour
+public class FirstPersonPlayerMovement : MonoBehaviour
 {
     [Header("Movement Options")]
     [SerializeField]
     private float moveSpeed;
-
-    [SerializeField]
-    private float rotationSpeed;
 
     [SerializeField]
     private float jumpStrength;
@@ -32,9 +29,9 @@ public class PlayerMovement : MonoBehaviour
     private float sprintZoomMultiplier;
 
     [Header("References")]
-    [SerializeField]
-    [Tooltip("The physical object that represents the player")]
-    private GameObject playerObject;
+    //[SerializeField]
+    //[Tooltip("The physical object that represents the player")]
+    //private GameObject playerObject;
 
     [SerializeField]
     private ParticleSystem sprintParticles;
@@ -44,7 +41,7 @@ public class PlayerMovement : MonoBehaviour
 
     private Vector3 moveDirection;
     private float verticalVelocity;
-    private float normalCameraOrthoSize;
+    private float normalCameraLensSize;
     private bool grounded;
     private bool waitingForJump;
     private bool sprinting;
@@ -55,11 +52,11 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         controller = GetComponent<CharacterController>();
-        meshRenderer = playerObject.GetComponent<MeshRenderer>();
+        //meshRenderer = playerObject.GetComponent<MeshRenderer>();
 
         moveDirection = Vector3.zero;
         verticalVelocity = -0.5f;
-        normalCameraOrthoSize = virtualCamera.m_Lens.OrthographicSize;
+        normalCameraLensSize = virtualCamera.m_Lens.OrthographicSize;
         grounded = true;
         waitingForJump = false;
     }
@@ -152,24 +149,24 @@ public class PlayerMovement : MonoBehaviour
 
     private IEnumerator ZoomOutCamera()
     {
-        while (virtualCamera.m_Lens.OrthographicSize < normalCameraOrthoSize * sprintZoomMultiplier)
+        while (virtualCamera.m_Lens.OrthographicSize < normalCameraLensSize * sprintZoomMultiplier)
         {
             virtualCamera.m_Lens.OrthographicSize += sprintZoomSpeed * Time.deltaTime;
             yield return new WaitForEndOfFrame();
         }
 
-        virtualCamera.m_Lens.OrthographicSize = normalCameraOrthoSize * sprintZoomMultiplier;
+        virtualCamera.m_Lens.OrthographicSize = normalCameraLensSize * sprintZoomMultiplier;
     }
 
     private IEnumerator ZoomInCamera()
     {
-        while (virtualCamera.m_Lens.OrthographicSize > normalCameraOrthoSize)
+        while (virtualCamera.m_Lens.OrthographicSize > normalCameraLensSize)
         {
             virtualCamera.m_Lens.OrthographicSize -= sprintZoomSpeed / 2 * Time.deltaTime;
             yield return new WaitForEndOfFrame();
         }
 
-        virtualCamera.m_Lens.OrthographicSize = normalCameraOrthoSize;
+        virtualCamera.m_Lens.OrthographicSize = normalCameraLensSize;
     }
 
     public void Sprint(InputAction.CallbackContext context)
