@@ -1,16 +1,14 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Cinemachine;
 
 public class PlayerCameraManager : MonoBehaviour
 {
-    private enum CameraMode
-    {
-        FirstPerson,
-        Isometric
-    }
-
     [Header("References")]
+    [SerializeField]
+    private List<MeshRenderer> playerMeshes;
+
     [SerializeField]
     private CinemachineVirtualCamera isometricCamera;
 
@@ -20,11 +18,24 @@ public class PlayerCameraManager : MonoBehaviour
     [SerializeField]
     private GameObject HUD;
 
-    private CameraMode mode;
+    // TODO: rename this to something more accurate ("TopDown"?)
+    public bool Isometric;
 
     private void Start()
     {
-        mode = CameraMode.Isometric;
+        isometricCamera.gameObject.SetActive(Isometric);
+        firstPersonCamera.gameObject.SetActive(!Isometric);
+
+        // lock or unlock cursor
+        Cursor.lockState = Isometric ? CursorLockMode.None : CursorLockMode.Locked;
+        Cursor.visible = !Isometric;
+        HUD.SetActive(!Isometric);
+
+        // enable/disable player mesh
+        foreach (var meshRenderer in playerMeshes)
+        {
+            meshRenderer.enabled = Isometric;
+        }
     }
 
     public void DebugCameraSwitch(InputAction.CallbackContext context)
@@ -34,46 +45,21 @@ public class PlayerCameraManager : MonoBehaviour
 
         Debug.Log("Switching Camera");
 
-        switch (mode)
+        Isometric = !Isometric;
+
+        // transition camera
+        firstPersonCamera.gameObject.SetActive(!Isometric);
+        isometricCamera.gameObject.SetActive(Isometric);
+
+        // lock or unlock cursor
+        Cursor.lockState = Isometric ? CursorLockMode.None : CursorLockMode.Locked;
+        Cursor.visible = !Isometric;
+        HUD.SetActive(!Isometric);
+
+        // enable/disable player mesh
+        foreach (var meshRenderer in playerMeshes)
         {
-            // changing to isometric
-            case CameraMode.FirstPerson:
-                mode = CameraMode.Isometric;
-
-                // transition camera
-                firstPersonCamera.gameObject.SetActive(false);
-                isometricCamera.gameObject.SetActive(true);
-
-                // change movement mode
-                GetComponent<PlayerMovement>().Isometric = true;
-
-                // unlock cursor
-                Cursor.lockState = CursorLockMode.None;
-                Cursor.visible = false;
-                HUD.SetActive(false);
-
-                Camera.main.orthographic = false;
-                break;
-            // changing to first person
-            case CameraMode.Isometric:
-                mode = CameraMode.FirstPerson;
-
-                // transition camera
-                firstPersonCamera.gameObject.SetActive(true);
-                isometricCamera.gameObject.SetActive(false);
-
-                // change movement mode
-                GetComponent<PlayerMovement>().Isometric = false;
-
-                // lock cursor
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = true;
-                HUD.SetActive(true);
-
-                Camera.main.orthographic = false;
-                break;
-            default:
-                break;
+            meshRenderer.enabled = Isometric;
         }
     }
 }

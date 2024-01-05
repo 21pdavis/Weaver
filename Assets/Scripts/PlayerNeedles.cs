@@ -143,7 +143,6 @@ public class PlayerNeedles : MonoBehaviour
         if (!context.started || Needles.Count == 0)
             return;
 
-        // TODO: minimum radius around player to fire
         GameObject firedNeedle = Needles[0];
         Needles.RemoveAt(0);
         Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
