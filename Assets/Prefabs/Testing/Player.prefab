@@ -5271,10 +5271,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 10
-  rotationSpeed: 20
   jumpStrength: 10
   gravityMagnitude: 20
-  virtualCamera: {fileID: 0}
+  isometricCamera: {fileID: 0}
+  firstPersonCamera: {fileID: 0}
+  firstPersonSensitivity: 0
   sprintZoomSpeed: 20
   sprintZoomMultiplier: 1.1
   playerObject: {fileID: 2591592536392914033}

@@ -18,6 +18,9 @@ public class CompanionPowers : MonoBehaviour
 
     [Header("References")]
     [SerializeField]
+    private GameObject player;
+
+    [SerializeField]
     private ParticleSystem suspendParticles;
 
     private CompanionMovement companionMovement;
@@ -42,11 +45,10 @@ public class CompanionPowers : MonoBehaviour
             yield return null;
         }
 
-        suspendTarget.transform.parent.GetComponent<EnemyMovement>().navMeshAgent.enabled = true;
+        suspendTarget.transform.GetComponent<EnemyMovement>().navMeshAgent.enabled = true;
 
-        // TODO: should point at player, not companion ideally
-        suspendTarget.transform.rotation = Quaternion.LookRotation(transform.position - suspendTarget.transform.position);
         suspendTarget.GetComponent<Rigidbody>().isKinematic = true;
+        suspendTarget.transform.rotation = Quaternion.LookRotation(player.transform.position - suspendTarget.transform.position);
     }
 
     private IEnumerator CancelSuspendAfterDelay(GameObject suspendTarget)
@@ -98,7 +100,6 @@ public class CompanionPowers : MonoBehaviour
             yield return new WaitForEndOfFrame();
         }
 
-        // for some reason, have to use "this" here, I think it's a compiler bug...? Probably not a bug, but I don't understand it
         Vector3 particleStartPosition = suspendTarget.transform.position + (targetMeshRenderer.bounds.size.y / 2f) * Vector3.down;
         activeSuspendParticles = Instantiate(suspendParticles.gameObject, particleStartPosition, Quaternion.Euler(-90f, 0f, 0f));
 
@@ -162,7 +163,7 @@ public class CompanionPowers : MonoBehaviour
                 companionMovement.enabled = false; // disable companion movement while suspended
 
                 // disable navmesh to allow direct transform manipulation
-                suspendTarget.transform.parent.GetComponent<EnemyMovement>().navMeshAgent.enabled = false;
+                suspendTarget.transform.GetComponent<EnemyMovement>().navMeshAgent.enabled = false;
 
                 // need to zero velocities and disable gravity to prevent the enemy from having "left over" velocity from moving/previous suspend etc.
                 suspendTarget.GetComponent<Rigidbody>().isKinematic = false;

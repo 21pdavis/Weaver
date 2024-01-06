@@ -11,9 +11,6 @@ public class PlayerMovement : MonoBehaviour
     private float moveSpeed;
 
     [SerializeField]
-    private float rotationSpeed;
-
-    [SerializeField]
     private float jumpStrength;
 
     [SerializeField]
@@ -21,7 +18,13 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Camera Options")]
     [SerializeField]
-    private CinemachineVirtualCamera virtualCamera;
+    private CinemachineVirtualCamera isometricCamera;
+
+    [SerializeField]
+    private CinemachineVirtualCamera firstPersonCamera;
+
+    [SerializeField]
+    private float firstPersonSensitivity;
 
     [SerializeField]
     [Tooltip("How fast the camera zooms out when sprinting.")]
@@ -41,10 +44,12 @@ public class PlayerMovement : MonoBehaviour
 
     private CharacterController controller;
     private MeshRenderer meshRenderer;
+    private PlayerCameraManager cameraManager;
 
     private Vector3 moveDirection;
+    private Vector3 firstPersonLookDirection;
     private float verticalVelocity;
-    private float normalCameraOrthoSize;
+    private float normalCameraLensSize;
     private bool grounded;
     private bool waitingForJump;
     private bool sprinting;
@@ -56,10 +61,11 @@ public class PlayerMovement : MonoBehaviour
     {
         controller = GetComponent<CharacterController>();
         meshRenderer = playerObject.GetComponent<MeshRenderer>();
+        cameraManager = GetComponent<PlayerCameraManager>();
 
         moveDirection = Vector3.zero;
         verticalVelocity = -0.5f;
-        normalCameraOrthoSize = virtualCamera.m_Lens.OrthographicSize;
+        normalCameraLensSize = isometricCamera.m_Lens.OrthographicSize;
         grounded = true;
         waitingForJump = false;
     }
@@ -69,6 +75,7 @@ public class PlayerMovement : MonoBehaviour
     {
         UpdateIsGrounded();
 
+        // check if sprinting and grounded, play or stop particles accordingly
         if (sprinting)
         {
             if (!grounded && sprintParticles.isPlaying)
@@ -81,16 +88,33 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        controller.Move(moveSpeed * Time.deltaTime * moveDirection + verticalVelocity * Time.deltaTime * Vector3.up);
-
         // rotate character in direction of movement
-        if (moveDirection != Vector3.zero)
+        if (cameraManager.Isometric && moveDirection != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
             // TODO: Determine if I want to lerp or not here (probably not for more responsive movement)
-            //transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
             transform.rotation = targetRotation;
         }
+
+        // rotate character in direction of camera
+        else if (!cameraManager.Isometric)
+        {
+            // side-to-side rotation
+            transform.Rotate(firstPersonSensitivity * Time.deltaTime * new Vector3(0f, firstPersonLookDirection.x, 0f));
+
+            // up-and-down rotation
+            Vector3 xRotationDelta = firstPersonSensitivity * Time.deltaTime * new Vector3(-firstPersonLookDirection.y, 0f, 0f);
+            if (
+                (firstPersonCamera.transform.rotation.eulerAngles + xRotationDelta).x < 90f
+                || (firstPersonCamera.transform.rotation.eulerAngles + xRotationDelta).x > 270f
+            )
+            {
+               firstPersonCamera.transform.Rotate(firstPersonSensitivity * Time.deltaTime * new Vector3(-firstPersonLookDirection.y, 0f, 0f));
+            }
+        }
+
+        // move character
+        controller.Move(moveSpeed * Time.deltaTime * moveDirection + verticalVelocity * Time.deltaTime * Vector3.up);
     }
 
     private void FixedUpdate()
@@ -119,7 +143,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    public void Move(InputAction.CallbackContext context)
+    private void MoveIsometric(InputAction.CallbackContext context)
     {
         // using performed instead of started here helps to detect for changes in how far the user is pushing the stick
         if (context.performed)
@@ -131,6 +155,51 @@ public class PlayerMovement : MonoBehaviour
         else if (context.canceled)
         {
             moveDirection = Vector3.zero;
+        }
+    }
+
+    private void MoveFirstPerson(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            Vector2 inputDirection = context.ReadValue<Vector2>();
+            moveDirection = Camera.main.transform.TransformDirection(new Vector3(inputDirection.x, 0, inputDirection.y));
+            
+            // flatten out moveDirection
+            moveDirection.y = 0f;
+            moveDirection.Normalize();
+        }
+        else if (context.canceled)
+        {
+            moveDirection = Vector3.zero;
+        }
+    }
+
+    public void Move(InputAction.CallbackContext context)
+    {
+        if (cameraManager.Isometric)
+        {
+            MoveIsometric(context);
+        }
+        else
+        {
+            MoveFirstPerson(context);
+        }
+    }
+
+    public void Look(InputAction.CallbackContext context)
+    {
+        if (cameraManager.Isometric)
+            return;
+
+        if (context.performed)
+        {
+            firstPersonLookDirection = context.ReadValue<Vector2>();
+            moveDirection = Quaternion.AngleAxis(firstPersonSensitivity * Time.deltaTime * firstPersonLookDirection.x, Vector3.up) * moveDirection;
+        }
+        else if (context.canceled)
+        {
+            firstPersonLookDirection = Vector3.zero;
         }
     }
 
@@ -152,24 +221,24 @@ public class PlayerMovement : MonoBehaviour
 
     private IEnumerator ZoomOutCamera()
     {
-        while (virtualCamera.m_Lens.OrthographicSize < normalCameraOrthoSize * sprintZoomMultiplier)
+        while (isometricCamera.m_Lens.OrthographicSize < normalCameraLensSize * sprintZoomMultiplier)
         {
-            virtualCamera.m_Lens.OrthographicSize += sprintZoomSpeed * Time.deltaTime;
+            isometricCamera.m_Lens.OrthographicSize += sprintZoomSpeed * Time.deltaTime;
             yield return new WaitForEndOfFrame();
         }
 
-        virtualCamera.m_Lens.OrthographicSize = normalCameraOrthoSize * sprintZoomMultiplier;
+        isometricCamera.m_Lens.OrthographicSize = normalCameraLensSize * sprintZoomMultiplier;
     }
 
     private IEnumerator ZoomInCamera()
     {
-        while (virtualCamera.m_Lens.OrthographicSize > normalCameraOrthoSize)
+        while (isometricCamera.m_Lens.OrthographicSize > normalCameraLensSize)
         {
-            virtualCamera.m_Lens.OrthographicSize -= sprintZoomSpeed / 2 * Time.deltaTime;
+            isometricCamera.m_Lens.OrthographicSize -= sprintZoomSpeed / 2 * Time.deltaTime;
             yield return new WaitForEndOfFrame();
         }
 
-        virtualCamera.m_Lens.OrthographicSize = normalCameraOrthoSize;
+        isometricCamera.m_Lens.OrthographicSize = normalCameraLensSize;
     }
 
     public void Sprint(InputAction.CallbackContext context)
