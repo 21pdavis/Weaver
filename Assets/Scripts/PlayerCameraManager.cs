@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -18,18 +19,22 @@ public class PlayerCameraManager : MonoBehaviour
     [SerializeField]
     private GameObject HUD;
 
+    [SerializeField]
+    private Transform firstPersonCameraMountPoint;
+
     // TODO: rename this to something more accurate ("TopDown"?)
     public bool Isometric;
 
-    private void Start()
+    private void Awake()
     {
-        isometricCamera.gameObject.SetActive(Isometric);
-        firstPersonCamera.gameObject.SetActive(!Isometric);
-
         // lock or unlock cursor
         Cursor.lockState = Isometric ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = !Isometric;
         HUD.SetActive(!Isometric);
+
+        // transition camera (order actually matters here)
+        isometricCamera.gameObject.SetActive(Isometric);
+        firstPersonCamera.gameObject.SetActive(!Isometric);
 
         // enable/disable player mesh
         foreach (var meshRenderer in playerMeshes)
@@ -48,15 +53,15 @@ public class PlayerCameraManager : MonoBehaviour
         Isometric = !Isometric;
 
         // transition camera
-        firstPersonCamera.gameObject.SetActive(!Isometric);
         isometricCamera.gameObject.SetActive(Isometric);
+        firstPersonCamera.gameObject.SetActive(!Isometric);
 
         // lock or unlock cursor
         Cursor.lockState = Isometric ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = !Isometric;
         HUD.SetActive(!Isometric);
 
-        // enable/disable player mesh
+        // enable/disable player mesh (TODO: need to delay this)
         foreach (var meshRenderer in playerMeshes)
         {
             meshRenderer.enabled = Isometric;
