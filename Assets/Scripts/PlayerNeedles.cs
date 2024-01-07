@@ -29,7 +29,7 @@ public class PlayerNeedles : MonoBehaviour
 
     [Header("References")]
     [SerializeField]
-    private GameObject playerObject;
+    private GameObject playerMesh;
 
     [SerializeField]
     private GameObject needlePrefab;
@@ -37,17 +37,19 @@ public class PlayerNeedles : MonoBehaviour
     public List<GameObject> Needles { get; set; }
 
     private MeshRenderer meshRenderer;
+    private PlayerCameraManager cameraManager;
+
+    internal bool canFire;
 
     private Vector3 needleAnchorCenter;
-    private Vector3 needleAnchorLeft;
-    private Vector3 needleAnchorRight;
     private List<Vector3> needlePositions;
     private float radianIncrement;
 
     // Start is called before the first frame update
     void Start()
     {
-        meshRenderer = playerObject.GetComponent<MeshRenderer>();
+        meshRenderer = playerMesh.GetComponent<MeshRenderer>();
+        cameraManager = GetComponent<PlayerCameraManager>();
         UpdateAnchors();
 
         // initial needle positions
@@ -70,6 +72,8 @@ public class PlayerNeedles : MonoBehaviour
             GameObject needle = Instantiate(needlePrefab, needlePositions[i], transform.rotation);
             Needles.Add(needle);
         }
+
+        canFire = true;
     }
 
     // Update is called once per frame
@@ -140,21 +144,14 @@ public class PlayerNeedles : MonoBehaviour
 
     public void Fire(InputAction.CallbackContext context)
     {
-        if (!context.started || Needles.Count == 0)
+        if (!context.started || cameraManager.Isometric || Needles.Count == 0 || !canFire)
             return;
 
         GameObject firedNeedle = Needles[0];
         Needles.RemoveAt(0);
-        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if (Physics.Raycast(ray, out RaycastHit hit))
-        {
-            GameObject hitObject = hit.collider.gameObject;
-            StartCoroutine(FireNeedleAtTarget(firedNeedle, hit.point, hitObject.CompareTag("Enemy") ? hitObject : null));
-        }
-        else
-        {
-            Debug.LogWarning("No hit point found for needle");
-        }
+        Vector3 launchPoint = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 2, Camera.main.nearClipPlane))
+                                + 2.5f * Camera.main.transform.forward;
+        firedNeedle.GetComponent<NeedleTargeting>().Fire(launchPoint);
     }
 
     private void UpdateAnchors()
@@ -162,8 +159,5 @@ public class PlayerNeedles : MonoBehaviour
         needleAnchorCenter = meshRenderer.bounds.center
             + (meshRenderer.bounds.size.y / 4) * transform.up
             - distanceFromPlayer * transform.forward;
-
-        needleAnchorLeft = needleAnchorCenter - (spreadHorizontal / 2) * transform.right;
-        needleAnchorRight = needleAnchorCenter + (spreadHorizontal / 2) * transform.right;
     }
 }

@@ -10,8 +10,18 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 77279abdc92dec341b1c53c7dfca0c23,
         type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.025
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 77279abdc92dec341b1c53c7dfca0c23,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.025
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 77279abdc92dec341b1c53c7dfca0c23,
+        type: 3}
       propertyPath: m_LocalScale.z
-      value: 1
+      value: 1.5790211
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 77279abdc92dec341b1c53c7dfca0c23,
         type: 3}
@@ -76,5 +86,55 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 77279abdc92dec341b1c53c7dfca0c23,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6362413280436325803}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 77279abdc92dec341b1c53c7dfca0c23,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5959417712391200327}
   m_SourcePrefab: {fileID: 100100000, guid: 77279abdc92dec341b1c53c7dfca0c23, type: 3}
+--- !u!1 &5752439979774456800 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 77279abdc92dec341b1c53c7dfca0c23,
+    type: 3}
+  m_PrefabInstance: {fileID: 4833959436349017777}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6362413280436325803
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5752439979774456800}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5630f75eb71c310448ffd962005276bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  flightSpeed: 50
+  mountSpeed: 10
+  launchDelay: 0
+--- !u!65 &5959417712391200327
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5752439979774456800}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 0
+  serializedVersion: 3
+  m_Size: {x: 2.0000005, y: 2, z: 0.17528471}
+  m_Center: {x: -0.000079384365, y: 3.2557615e-23, z: -0.27865586}

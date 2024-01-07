@@ -37,11 +37,13 @@ public class CompanionPowers : MonoBehaviour
     private IEnumerator ReEnableNavMeshOnGrounded(GameObject suspendTarget)
     {
         bool grounded = false;
-        MeshRenderer targetMeshRenderer = suspendTarget.GetComponent<MeshRenderer>();
+        Collider targetCollider = suspendTarget.GetComponent<Collider>();
+
 
         while (!grounded)
         {
-            grounded = Physics.Raycast(targetMeshRenderer.bounds.center, targetMeshRenderer.bounds.center + (targetMeshRenderer.bounds.size.y / 2 + 0.1f) * Vector3.down);
+            grounded = Physics.SphereCast(targetCollider.bounds.center, targetCollider.bounds.size.x / 2, Vector3.down, out RaycastHit hit, targetCollider.bounds.size.y / 4 + 0.1f);
+            //grounded = Physics.Raycast(targetCollider.bounds.center, targetCollider.bounds.center + (targetCollider.bounds.size.y / 2 + 0.1f) * Vector3.down);
             yield return null;
         }
 

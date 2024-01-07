@@ -46,7 +46,10 @@ public class PlayerMovement : MonoBehaviour
     private MeshRenderer meshRenderer;
     private PlayerCameraManager cameraManager;
 
-    private Vector3 moveDirection;
+    internal bool canMove;
+    internal bool canLook;
+    internal Vector3 moveDirection;
+
     private Vector3 firstPersonLookDirection;
     private float verticalVelocity;
     private float normalCameraLensSize;
@@ -66,6 +69,8 @@ public class PlayerMovement : MonoBehaviour
         moveDirection = Vector3.zero;
         verticalVelocity = -0.5f;
         normalCameraLensSize = isometricCamera.m_Lens.OrthographicSize;
+        canMove = true;
+        canLook = true;
         grounded = true;
         waitingForJump = false;
     }
@@ -88,35 +93,40 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // rotate character in direction of movement
-        if (cameraManager.Isometric && moveDirection != Vector3.zero)
+        if (canLook)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
-            // TODO: Determine if I want to lerp or not here (probably not for more responsive movement)
-            transform.rotation = targetRotation;
-        }
-
-        // rotate character in direction of camera
-        else if (!cameraManager.Isometric)
-        {
-            // side-to-side rotation
-            transform.Rotate(firstPersonSensitivity * Time.deltaTime * new Vector3(0f, firstPersonLookDirection.x, 0f));
-
-            // up-and-down rotation
-            Vector3 xRotationDelta = firstPersonSensitivity * Time.deltaTime * new Vector3(-firstPersonLookDirection.y, 0f, 0f);
-            if (
-                (firstPersonCamera.transform.rotation.eulerAngles + xRotationDelta).x < 90f
-                || (firstPersonCamera.transform.rotation.eulerAngles + xRotationDelta).x > 270f
-            )
+            // rotate character in direction of movement
+            if (cameraManager.Isometric && moveDirection != Vector3.zero)
             {
-               firstPersonCamera.transform.Rotate(firstPersonSensitivity * Time.deltaTime * new Vector3(-firstPersonLookDirection.y, 0f, 0f));
+                Quaternion targetRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
+                // TODO: Determine if I want to lerp or not here (probably not for more responsive movement)
+                transform.rotation = targetRotation;
+            }
+            // rotate character in direction of camera
+            else if (!cameraManager.Isometric)
+            {
+                // side-to-side rotation
+                transform.Rotate(firstPersonSensitivity * new Vector3(0f, firstPersonLookDirection.x, 0f));
+
+                // up-and-down rotation
+                Vector3 xRotationDelta = firstPersonSensitivity * new Vector3(-firstPersonLookDirection.y, 0f, 0f);
+                if (
+                    (firstPersonCamera.transform.rotation.eulerAngles + xRotationDelta).x < 90f
+                    || (firstPersonCamera.transform.rotation.eulerAngles + xRotationDelta).x > 270f
+                )
+                {
+                    firstPersonCamera.transform.Rotate(xRotationDelta);
+                }
             }
         }
 
         // move character
-        controller.Move(moveSpeed * Time.deltaTime * moveDirection + verticalVelocity * Time.deltaTime * Vector3.up);
+        if (canMove)
+        {
+           controller.Move(moveSpeed * Time.deltaTime * moveDirection + verticalVelocity * Time.deltaTime * Vector3.up);
+        }
     }
-
+    
     private void FixedUpdate()
     {
         UpdateGravity();
@@ -164,7 +174,7 @@ public class PlayerMovement : MonoBehaviour
         {
             Vector2 inputDirection = context.ReadValue<Vector2>();
             moveDirection = Camera.main.transform.TransformDirection(new Vector3(inputDirection.x, 0, inputDirection.y));
-            
+
             // flatten out moveDirection
             moveDirection.y = 0f;
             moveDirection.Normalize();
@@ -195,7 +205,7 @@ public class PlayerMovement : MonoBehaviour
         if (context.performed)
         {
             firstPersonLookDirection = context.ReadValue<Vector2>();
-            moveDirection = Quaternion.AngleAxis(firstPersonSensitivity * Time.deltaTime * firstPersonLookDirection.x, Vector3.up) * moveDirection;
+            moveDirection = Quaternion.AngleAxis(firstPersonSensitivity * firstPersonLookDirection.x, Vector3.up) * moveDirection;
         }
         else if (context.canceled)
         {
