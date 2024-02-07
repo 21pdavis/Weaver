@@ -6,6 +6,15 @@ using Cinemachine;
 
 public class PlayerCameraManager : MonoBehaviour
 {
+    [Header("Camera Options")]
+    [SerializeField]
+    private float normalOrthoSize = 10f;
+
+    [SerializeField]
+    private float normalFieldOfView = 90f;
+
+    public float firstPersonSensitivity = 0.1f;
+
     [Header("References")]
     [SerializeField]
     private List<MeshRenderer> playerMeshes;
@@ -43,6 +52,9 @@ public class PlayerCameraManager : MonoBehaviour
         firstPersonCamera.gameObject.SetActive(!Isometric);
         playerMovement = GetComponent<PlayerMovement>();
         playerNeedles = GetComponent<PlayerNeedles>();
+
+        isometricCamera.m_Lens.OrthographicSize = normalOrthoSize;
+        firstPersonCamera.m_Lens.FieldOfView = normalFieldOfView;
     }
 
     private IEnumerator TemporarilyDisablePlayerMovement()
@@ -75,11 +87,10 @@ public class PlayerCameraManager : MonoBehaviour
             )
             {
                 // enable/disable player mesh
-                foreach (var meshRenderer in playerMeshes)
+                foreach (MeshRenderer meshRenderer in playerMeshes)
                 {
                     meshRenderer.enabled = Isometric;
                 }
-
             }
         }
     }
@@ -103,5 +114,44 @@ public class PlayerCameraManager : MonoBehaviour
         Cursor.lockState = Isometric ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = !Isometric;
         HUD.SetActive(!Isometric);
+    }
+
+    internal CinemachineVirtualCamera GetActiveCamera()
+    {
+        return Isometric ? isometricCamera : firstPersonCamera;
+    }
+
+    internal void SetLensSize(float size)
+    {
+        if (Isometric)
+        {
+            isometricCamera.m_Lens.OrthographicSize = size;
+        }
+        else
+        {
+            firstPersonCamera.m_Lens.FieldOfView = size;
+        }
+    }
+
+    internal void AddToLensSize(float delta)
+    {
+        if (Isometric)
+        {
+            isometricCamera.m_Lens.OrthographicSize += delta;
+        }
+        else
+        {
+            firstPersonCamera.m_Lens.FieldOfView += delta;
+        }
+    }
+
+    internal float GetCurrentLensSize()
+    {
+        return Isometric ? isometricCamera.m_Lens.OrthographicSize : firstPersonCamera.m_Lens.FieldOfView;
+    }
+
+    internal float GetNormalLensSize()
+    {
+        return Isometric ? normalOrthoSize : normalFieldOfView;
     }
 }

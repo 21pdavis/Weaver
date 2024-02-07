@@ -1,7 +1,6 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Cinemachine;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerMovement : MonoBehaviour
@@ -15,16 +14,6 @@ public class PlayerMovement : MonoBehaviour
 
     [SerializeField]
     private float gravityMagnitude;
-
-    [Header("Camera Options")]
-    [SerializeField]
-    private CinemachineVirtualCamera isometricCamera;
-
-    [SerializeField]
-    private CinemachineVirtualCamera firstPersonCamera;
-
-    [SerializeField]
-    private float firstPersonSensitivity;
 
     [SerializeField]
     [Tooltip("How fast the camera zooms out when sprinting.")]
@@ -52,10 +41,10 @@ public class PlayerMovement : MonoBehaviour
 
     private Vector3 firstPersonLookDirection;
     private float verticalVelocity;
-    private float normalCameraLensSize;
     private bool grounded;
     private bool waitingForJump;
     private bool sprinting;
+    private bool sliding;
     private IEnumerator cameraZoomOutHandle;
     private IEnumerator cameraZoomInHandle;
 
@@ -68,7 +57,6 @@ public class PlayerMovement : MonoBehaviour
 
         moveDirection = Vector3.zero;
         verticalVelocity = -0.5f;
-        normalCameraLensSize = isometricCamera.m_Lens.OrthographicSize;
         canMove = true;
         canLook = true;
         grounded = true;
@@ -93,6 +81,7 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
+        // canLook refers to either: Player rotation when in isometric mode, OR Camera rotation when in first person mode
         if (canLook)
         {
             // rotate character in direction of movement
@@ -106,16 +95,16 @@ public class PlayerMovement : MonoBehaviour
             else if (!cameraManager.Isometric)
             {
                 // side-to-side rotation
-                transform.Rotate(firstPersonSensitivity * new Vector3(0f, firstPersonLookDirection.x, 0f));
+                transform.Rotate(cameraManager.firstPersonSensitivity * new Vector3(0f, firstPersonLookDirection.x, 0f));
 
                 // up-and-down rotation
-                Vector3 xRotationDelta = firstPersonSensitivity * new Vector3(-firstPersonLookDirection.y, 0f, 0f);
+                Vector3 xRotationDelta = cameraManager.firstPersonSensitivity * new Vector3(-firstPersonLookDirection.y, 0f, 0f);
                 if (
-                    (firstPersonCamera.transform.rotation.eulerAngles + xRotationDelta).x < 90f
-                    || (firstPersonCamera.transform.rotation.eulerAngles + xRotationDelta).x > 270f
+                    (cameraManager.GetActiveCamera().transform.rotation.eulerAngles + xRotationDelta).x < 90f
+                    || (cameraManager.GetActiveCamera().transform.rotation.eulerAngles + xRotationDelta).x > 270f
                 )
                 {
-                    firstPersonCamera.transform.Rotate(xRotationDelta);
+                    cameraManager.GetActiveCamera().transform.Rotate(xRotationDelta);
                 }
             }
         }
@@ -205,7 +194,7 @@ public class PlayerMovement : MonoBehaviour
         if (context.performed)
         {
             firstPersonLookDirection = context.ReadValue<Vector2>();
-            moveDirection = Quaternion.AngleAxis(firstPersonSensitivity * firstPersonLookDirection.x, Vector3.up) * moveDirection;
+            moveDirection = Quaternion.AngleAxis(cameraManager.firstPersonSensitivity * firstPersonLookDirection.x, Vector3.up) * moveDirection;
         }
         else if (context.canceled)
         {
@@ -229,31 +218,38 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    public void Slide(InputAction.CallbackContext context)
+    {
+        if (!context.started || !grounded || sliding)
+            return;
+
+    }
+
     private IEnumerator ZoomOutCamera()
     {
-        while (isometricCamera.m_Lens.OrthographicSize < normalCameraLensSize * sprintZoomMultiplier)
+        float zoomedOutFOV = cameraManager.GetNormalLensSize() * sprintZoomMultiplier;
+        while (zoomedOutFOV - cameraManager.GetCurrentLensSize() > 0.1f)
         {
-            isometricCamera.m_Lens.OrthographicSize += sprintZoomSpeed * Time.deltaTime;
+            cameraManager.SetLensSize(Mathf.Lerp(cameraManager.GetCurrentLensSize(), zoomedOutFOV, sprintZoomSpeed * Time.deltaTime));
             yield return new WaitForEndOfFrame();
         }
 
-        isometricCamera.m_Lens.OrthographicSize = normalCameraLensSize * sprintZoomMultiplier;
+        cameraManager.SetLensSize(cameraManager.GetNormalLensSize() * sprintZoomMultiplier);
     }
 
     private IEnumerator ZoomInCamera()
     {
-        while (isometricCamera.m_Lens.OrthographicSize > normalCameraLensSize)
+        while (cameraManager.GetCurrentLensSize() - cameraManager.GetNormalLensSize() > 0.1f)
         {
-            isometricCamera.m_Lens.OrthographicSize -= sprintZoomSpeed / 2 * Time.deltaTime;
+            cameraManager.SetLensSize(Mathf.Lerp(cameraManager.GetCurrentLensSize(), cameraManager.GetNormalLensSize(), sprintZoomSpeed * 2 * Time.deltaTime));
             yield return new WaitForEndOfFrame();
         }
 
-        isometricCamera.m_Lens.OrthographicSize = normalCameraLensSize;
+        cameraManager.SetLensSize(cameraManager.GetNormalLensSize());
     }
 
     public void Sprint(InputAction.CallbackContext context)
     {
-        // TODO: toggle vs hold to sprint (see code below, can just add a toggle vs hold flag)
         if (context.started)
         {
             sprinting = true;
@@ -284,38 +280,5 @@ public class PlayerMovement : MonoBehaviour
             sprintParticles.Stop();
             moveSpeed /= 2;
         }
-
-
-        //if (context.started)
-        //{
-        //    if (!sprinting)
-        //    {
-        //        sprinting = true;
-        //        if (cameraZoomInHandle != null)
-        //        {
-        //            StopCoroutine(cameraZoomInHandle);
-        //        }
-
-        //        cameraZoomOutHandle = ZoomOutCamera();
-        //        StartCoroutine(cameraZoomOutHandle);
-
-        //        sprintParticles.Play();
-        //        moveSpeed *= 2;
-        //    }
-        //    else
-        //    {
-        //        sprinting = false;
-        //        if (cameraZoomOutHandle != null)
-        //        {
-        //            StopCoroutine(cameraZoomOutHandle);
-        //        }
-
-        //        cameraZoomInHandle = ZoomInCamera();
-        //        StartCoroutine(cameraZoomInHandle);
-
-        //        sprintParticles.Stop();
-        //        moveSpeed /= 2;
-        //    }
-        //}
     }
 }

@@ -11,12 +11,12 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 77279abdc92dec341b1c53c7dfca0c23,
         type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.025
+      value: 0.05
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 77279abdc92dec341b1c53c7dfca0c23,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.025
+      value: 0.05
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 77279abdc92dec341b1c53c7dfca0c23,
         type: 3}
@@ -114,7 +114,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5630f75eb71c310448ffd962005276bc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  flightSpeed: 50
+  flightSpeed: 100
   mountSpeed: 10
   launchDelay: 0
 --- !u!65 &5959417712391200327
