@@ -1586,7 +1586,7 @@ PrefabInstance:
     - target: {fileID: 3138236596402455464, guid: decf9325fd9dd424a80b8b0253d02183,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.71
+      value: 1.127
       objectReference: {fileID: 0}
     - target: {fileID: 3138236596402455464, guid: decf9325fd9dd424a80b8b0253d02183,
         type: 3}
@@ -3047,7 +3047,7 @@ PrefabInstance:
     - target: {fileID: 3138236596402455464, guid: decf9325fd9dd424a80b8b0253d02183,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.71
+      value: 1.127
       objectReference: {fileID: 0}
     - target: {fileID: 3138236596402455464, guid: decf9325fd9dd424a80b8b0253d02183,
         type: 3}
@@ -3213,31 +3213,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1472957914984624003, guid: 820b47434e238fd488f33522ba36ff38,
-        type: 3}
-      propertyPath: m_TagString
-      value: Player
-      objectReference: {fileID: 0}
     - target: {fileID: 1879214137544480336, guid: 820b47434e238fd488f33522ba36ff38,
         type: 3}
       propertyPath: m_ActionEvents.Array.data[3].m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1533497579}
-    - target: {fileID: 1953858400007349515, guid: 820b47434e238fd488f33522ba36ff38,
-        type: 3}
-      propertyPath: m_TagString
-      value: Player
-      objectReference: {fileID: 0}
-    - target: {fileID: 2616240366910661650, guid: 820b47434e238fd488f33522ba36ff38,
-        type: 3}
-      propertyPath: m_TagString
-      value: Player
-      objectReference: {fileID: 0}
-    - target: {fileID: 2750476643617982668, guid: 820b47434e238fd488f33522ba36ff38,
-        type: 3}
-      propertyPath: m_TagString
-      value: Player
-      objectReference: {fileID: 0}
     - target: {fileID: 2833409027610297429, guid: 820b47434e238fd488f33522ba36ff38,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -3288,29 +3268,9 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3218458873846218418, guid: 820b47434e238fd488f33522ba36ff38,
-        type: 3}
-      propertyPath: m_TagString
-      value: Player
-      objectReference: {fileID: 0}
-    - target: {fileID: 4719667683537274473, guid: 820b47434e238fd488f33522ba36ff38,
-        type: 3}
-      propertyPath: m_TagString
-      value: Player
-      objectReference: {fileID: 0}
     - target: {fileID: 5802435938388468740, guid: 820b47434e238fd488f33522ba36ff38,
         type: 3}
       propertyPath: m_Name
-      value: Player
-      objectReference: {fileID: 0}
-    - target: {fileID: 5802435938388468740, guid: 820b47434e238fd488f33522ba36ff38,
-        type: 3}
-      propertyPath: m_TagString
-      value: Player
-      objectReference: {fileID: 0}
-    - target: {fileID: 7845722270698064188, guid: 820b47434e238fd488f33522ba36ff38,
-        type: 3}
-      propertyPath: m_TagString
       value: Player
       objectReference: {fileID: 0}
     - target: {fileID: 8090293533783372218, guid: 820b47434e238fd488f33522ba36ff38,
@@ -3328,11 +3288,6 @@ PrefabInstance:
       propertyPath: isometricCamera
       value: 
       objectReference: {fileID: 295564818}
-    - target: {fileID: 8691106083793237616, guid: 820b47434e238fd488f33522ba36ff38,
-        type: 3}
-      propertyPath: m_TagString
-      value: Player
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3365,7 +3320,7 @@ PrefabInstance:
     - target: {fileID: 3138236596402455464, guid: decf9325fd9dd424a80b8b0253d02183,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.71
+      value: 1.127
       objectReference: {fileID: 0}
     - target: {fileID: 3138236596402455464, guid: decf9325fd9dd424a80b8b0253d02183,
         type: 3}

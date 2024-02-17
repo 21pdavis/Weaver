@@ -26,7 +26,6 @@ public class CompanionPowers : MonoBehaviour
     private CompanionMovement companionMovement;
     private GameObject activeSuspendParticles;
     bool currentlySuspending;
-    private List<GameObject> objectsSuspended;
 
     private void Start()
     {
@@ -37,8 +36,7 @@ public class CompanionPowers : MonoBehaviour
     private IEnumerator ReEnableNavMeshOnGrounded(GameObject suspendTarget)
     {
         bool grounded = false;
-        Collider targetCollider = suspendTarget.GetComponent<Collider>();
-
+        Collider targetCollider = suspendTarget.transform.Find("Mesh").GetComponent<Collider>();
 
         while (!grounded)
         {
@@ -88,7 +86,7 @@ public class CompanionPowers : MonoBehaviour
     private IEnumerator SuspendObjectWithCompanionFlight(GameObject suspendTarget, Vector3 startPosition, Vector3 endPosition)
     {
         // determine where companion should start for spiral around target
-        MeshRenderer targetMeshRenderer = suspendTarget.GetComponent<MeshRenderer>();
+        MeshRenderer targetMeshRenderer = suspendTarget.transform.Find("Mesh").GetComponent<MeshRenderer>();
         Vector3 flattenedTargetForward = new Vector3(suspendTarget.transform.forward.x, 0f, suspendTarget.transform.forward.z).normalized;
         Vector3 companionStartPosition = suspendTarget.transform.position
             + (targetMeshRenderer.bounds.size.y / 2f) * Vector3.down
@@ -131,7 +129,7 @@ public class CompanionPowers : MonoBehaviour
             yield return new WaitForEndOfFrame();
         }
 
-        suspendTarget.GetComponent<Collider>().enabled = true;
+        suspendTarget.transform.Find("Mesh").GetComponent<Collider>().enabled = true;
         companionMovement.enabled = true;
         StartCoroutine(CancelSuspendAfterDelay(suspendTarget));
     }
@@ -157,6 +155,8 @@ public class CompanionPowers : MonoBehaviour
                 GameObject suspendTarget = colliders
                     .OrderBy(collider => Vector3.Distance(hit.point, collider.transform.position))
                     .First()
+                    .transform
+                    .parent
                     .gameObject;
 
                 Rigidbody targetRb = suspendTarget.GetComponent<Rigidbody>();
@@ -170,7 +170,7 @@ public class CompanionPowers : MonoBehaviour
                 // need to zero velocities and disable gravity to prevent the enemy from having "left over" velocity from moving/previous suspend etc.
                 suspendTarget.GetComponent<Rigidbody>().isKinematic = false;
                 // disable collider to prevent collision with player/other enemies during raise up to max suspend height*
-                suspendTarget.GetComponent<Collider>().enabled = false;
+                suspendTarget.transform.Find("Mesh").GetComponent<Collider>().enabled = false;
                 targetRb.velocity = Vector3.zero;
                 targetRb.angularVelocity = -0.25f * suspendTarget.transform.right;
                 targetRb.useGravity = false;

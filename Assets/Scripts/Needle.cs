@@ -65,8 +65,7 @@ public class Needle : MonoBehaviour
             if (realHit.collider.CompareTag("Player") || realHit.collider.CompareTag("Needle"))
                 return false;
 
-            Debug.Log($"Raycast sticking into {realHit.collider.name}");
-            StickInto(realHit.point, realHit.transform.parent);
+            StickInto(realHit.point, realHit.transform);
             return true;
         }
 
