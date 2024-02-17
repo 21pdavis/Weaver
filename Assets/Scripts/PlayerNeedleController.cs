@@ -151,7 +151,7 @@ public class PlayerNeedles : MonoBehaviour
         Needles.RemoveAt(0);
         Vector3 launchPoint = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 2, Camera.main.nearClipPlane))
                                 + 2.5f * Camera.main.transform.forward;
-        firedNeedle.GetComponent<NeedleTargeting>().Fire(launchPoint);
+        firedNeedle.GetComponent<Needle>().Fire(launchPoint);
     }
 
     private void UpdateAnchors()
