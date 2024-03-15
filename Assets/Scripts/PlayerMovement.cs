@@ -1,3 +1,4 @@
+using Cinemachine;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -14,6 +15,15 @@ public class PlayerMovement : MonoBehaviour
 
     [SerializeField]
     private float gravityMagnitude;
+
+    [SerializeField]
+    private float slideCameraOffset;
+
+    [SerializeField]
+    private float slideCameraDropSpeed;
+
+    [SerializeField]
+    private float slideDuration;
 
     [SerializeField]
     [Tooltip("How fast the camera zooms out when sprinting.")]
@@ -66,6 +76,9 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //! DEBUG
+        Debug.Log($"Current camera y: {cameraManager.GetActiveCamera().transform.position.y }");
+
         UpdateIsGrounded();
 
         // check if sprinting and grounded, play or stop particles accordingly
@@ -218,11 +231,45 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    private IEnumerator SlideRoutine()
+    {
+        CinemachineVirtualCamera cam = cameraManager.GetActiveCamera();
+        Vector3 camStartPos = cam.transform.position;
+        Vector3 camEndPos = cam.transform.position + slideCameraOffset * Vector3.down;
+
+        if (!cameraManager.Isometric)
+        {
+            while (Mathf.Abs(cam.transform.position.y - camEndPos.y) > 0.01f)
+            {
+                float currY = Mathf.Lerp(cam.transform.position.y, camEndPos.y, slideCameraDropSpeed * Time.deltaTime);
+                cam.transform.position = new Vector3(cam.transform.position.x, currY, cam.transform.position.z);
+
+                yield return new WaitForEndOfFrame();
+            }
+        }
+
+        yield return new WaitForSeconds(slideDuration);
+
+        if (!cameraManager.Isometric)
+        {
+            while (Mathf.Abs(cam.transform.position.y - camStartPos.y) > 0.01f)
+            {
+                float currY = Mathf.Lerp(cam.transform.position.y, camStartPos.y, 4 * slideCameraDropSpeed * Time.deltaTime);
+                cam.transform.position = new Vector3(cam.transform.position.x, currY, cam.transform.position.z);
+                yield return new WaitForEndOfFrame();
+            }
+        }
+
+        sliding = false;
+    }
+
     public void Slide(InputAction.CallbackContext context)
     {
-        if (!context.started || !grounded || sliding)
+        if (!context.started || !grounded || sliding || moveDirection == Vector3.zero)
             return;
 
+        sliding = true;
+        StartCoroutine(SlideRoutine());
     }
 
     private IEnumerator ZoomOutCamera()
