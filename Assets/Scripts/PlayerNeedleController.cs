@@ -3,14 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-/// <summary>
-/// Class to manage and track the player's needles
-/// </summary>
 public class PlayerNeedles : MonoBehaviour
 {
     [Header("Needle Options")]
     [SerializeField]
-    private int startNeedles;
+    private int maxNeedles;
 
     [SerializeField]
     private float spreadHorizontal;
@@ -27,14 +24,20 @@ public class PlayerNeedles : MonoBehaviour
     [SerializeField]
     private float fireSpeed;
 
+    [SerializeField]
+    private float needleRegenTime;
+
     [Header("References")]
+    [SerializeField]
+    private Transform grabPoint;
+
     [SerializeField]
     private GameObject playerMesh;
 
     [SerializeField]
     private GameObject needlePrefab;
 
-    public List<GameObject> Needles { get; set; }
+    internal List<GameObject> Needles { get; set; }
 
     private MeshRenderer meshRenderer;
     private PlayerCameraManager cameraManager;
@@ -44,6 +47,7 @@ public class PlayerNeedles : MonoBehaviour
     private Vector3 needleAnchorCenter;
     private List<Vector3> needlePositions;
     private float radianIncrement;
+    private float regenStartTime;
 
     // Start is called before the first frame update
     void Start()
@@ -54,8 +58,8 @@ public class PlayerNeedles : MonoBehaviour
 
         // initial needle positions
         needlePositions = new List<Vector3>();
-        radianIncrement = Mathf.Deg2Rad * (180f / (startNeedles - 1));
-        for (int i = 0; i < startNeedles; ++i)
+        radianIncrement = Mathf.Deg2Rad * (180f / (maxNeedles - 1));
+        for (int i = 0; i < maxNeedles; ++i)
         {
             Vector3 needlePosition = needleAnchorCenter + transform.TransformVector(new Vector3(
                 Mathf.Cos(radianIncrement * i) * spreadHorizontal / 2,
@@ -67,7 +71,7 @@ public class PlayerNeedles : MonoBehaviour
 
         // instantiate needles
         Needles = new List<GameObject>();
-        for (int i = 0; i < startNeedles; ++i)
+        for (int i = 0; i < maxNeedles; ++i)
         {
             GameObject needle = Instantiate(needlePrefab, needlePositions[i], transform.rotation);
             Needles.Add(needle);
@@ -81,10 +85,16 @@ public class PlayerNeedles : MonoBehaviour
     {
         UpdateAnchors();
 
+        if (needleRegenTime > 0 && Needles.Count < maxNeedles && Time.time > regenStartTime + needleRegenTime)
+        {
+            regenStartTime = Time.time;
+            Needles.Add(Instantiate(needlePrefab, needlePositions[Needles.Count], transform.rotation));
+        }
+
         // determine next needle positions
         List<Vector3> prevPositions = new List<Vector3>(needlePositions);
         needlePositions.Clear();
-        for (int i = 0; i < startNeedles; ++i)
+        for (int i = 0; i < maxNeedles; ++i)
         {
             Vector3 needlePosition = Vector3.Lerp(
                 prevPositions[i],
@@ -108,6 +118,13 @@ public class PlayerNeedles : MonoBehaviour
         }
     }
 
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.green;
+        //Gizmos.DrawWireSphere()
+    }
+
+    // no longer need this function, but keeping it around in case I need a homing needle later!
     private IEnumerator FireNeedleAtTarget(GameObject needle, Vector3 hitPoint, GameObject targetObj=null)
     {
         Vector3 targetPoint = hitPoint;
@@ -152,6 +169,14 @@ public class PlayerNeedles : MonoBehaviour
         Vector3 launchPoint = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 2, Camera.main.nearClipPlane))
                                 + 2.5f * Camera.main.transform.forward;
         firedNeedle.GetComponent<Needle>().Fire(launchPoint);
+    }
+
+    public void Grab(InputAction.CallbackContext context)
+    {
+        if (!context.started)
+            return;
+
+
     }
 
     private void UpdateAnchors()

@@ -76,9 +76,6 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //! DEBUG
-        Debug.Log($"Current camera y: {cameraManager.GetActiveCamera().transform.position.y }");
-
         UpdateIsGrounded();
 
         // check if sprinting and grounded, play or stop particles accordingly
