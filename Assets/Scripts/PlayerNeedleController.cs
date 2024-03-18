@@ -27,9 +27,12 @@ public class PlayerNeedles : MonoBehaviour
     [SerializeField]
     private float needleRegenTime;
 
+    [SerializeField]
+    private float grabDistance;
+
     [Header("References")]
     [SerializeField]
-    private Transform grabPoint;
+    private Transform threadStartPoint;
 
     [SerializeField]
     private GameObject playerMesh;
@@ -44,6 +47,7 @@ public class PlayerNeedles : MonoBehaviour
 
     internal bool canFire;
 
+    private GameObject grabbedNeedle;
     private Vector3 needleAnchorCenter;
     private List<Vector3> needlePositions;
     private float radianIncrement;
@@ -116,12 +120,28 @@ public class PlayerNeedles : MonoBehaviour
                 Quaternion.Lerp(Needles[i].transform.rotation, transform.rotation, followSpeed * Time.deltaTime)
             );
         }
+
+        UpdateGrabNeedle();
     }
 
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.green;
-        //Gizmos.DrawWireSphere()
+        Gizmos.DrawWireSphere(threadStartPoint.position, 0.1f);
+
+        if (Application.isPlaying && grabbedNeedle != null)
+        {
+            Gizmos.color = Color.cyan;
+            MeshRenderer needleMesh = grabbedNeedle.GetComponent<MeshRenderer>();
+            Gizmos.DrawWireSphere(
+                center:
+                    grabbedNeedle.transform.position
+                    - needleMesh.bounds.size.z
+                    / 1.5f * grabbedNeedle.transform.forward,
+                radius:
+                    0.25f
+            );
+        }
     }
 
     // no longer need this function, but keeping it around in case I need a homing needle later!
@@ -173,10 +193,20 @@ public class PlayerNeedles : MonoBehaviour
 
     public void Grab(InputAction.CallbackContext context)
     {
-        if (!context.started)
-            return;
+        //if (!context.performed)
+        //    return;
 
+        if (context.performed)
+        {
+            if (!grabbedNeedle)
+                return;
 
+            Debug.Log($"Grabbing needle {grabbedNeedle.name}");
+        }
+        else if (context.canceled)
+        {
+            // TODO: context-based grab release
+        }
     }
 
     private void UpdateAnchors()
@@ -184,5 +214,20 @@ public class PlayerNeedles : MonoBehaviour
         needleAnchorCenter = meshRenderer.bounds.center
             + (meshRenderer.bounds.size.y / 4) * transform.up
             - distanceFromPlayer * transform.forward;
+    }
+
+    private void UpdateGrabNeedle()
+    {
+        Vector3 origin = cameraManager.GetActiveCamera().transform.position;
+        Vector3 direction = cameraManager.GetActiveCamera().transform.forward;
+        if (Physics.SphereCast(origin, 2.5f, direction, out RaycastHit hit, grabDistance, LayerMask.GetMask("Needle")))
+        {
+            grabbedNeedle = hit.collider.gameObject;
+            Debug.Log($"Grabbed needle is {grabbedNeedle.name} in layer {LayerMask.LayerToName(hit.collider.gameObject.layer)}");
+        }
+        else
+        {
+            grabbedNeedle = null;
+        }
     }
 }
