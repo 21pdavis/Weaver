@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class Needle : MonoBehaviour
 {
+    public Transform needleBack;
+
     [SerializeField]
     private float flightSpeed;
 

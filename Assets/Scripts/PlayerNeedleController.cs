@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+using static Helpers;
+
 public class PlayerNeedles : MonoBehaviour
 {
     [Header("Needle Options")]
@@ -25,6 +27,7 @@ public class PlayerNeedles : MonoBehaviour
     private float fireSpeed;
 
     [SerializeField]
+    [Tooltip("Set to 0 to disable needle regen")]
     private float needleRegenTime;
 
     [SerializeField]
@@ -132,15 +135,8 @@ public class PlayerNeedles : MonoBehaviour
         if (Application.isPlaying && grabbedNeedle != null)
         {
             Gizmos.color = Color.cyan;
-            MeshRenderer needleMesh = grabbedNeedle.GetComponent<MeshRenderer>();
-            Gizmos.DrawWireSphere(
-                center:
-                    grabbedNeedle.transform.position
-                    - needleMesh.bounds.size.z
-                    / 1.5f * grabbedNeedle.transform.forward,
-                radius:
-                    0.25f
-            );
+
+            Gizmos.DrawWireSphere(grabbedNeedle.GetComponent<Needle>().needleBack.position, 0.25f);
         }
     }
 
@@ -193,15 +189,20 @@ public class PlayerNeedles : MonoBehaviour
 
     public void Grab(InputAction.CallbackContext context)
     {
-        //if (!context.performed)
-        //    return;
-
         if (context.performed)
         {
             if (!grabbedNeedle)
                 return;
 
             Debug.Log($"Grabbing needle {grabbedNeedle.name}");
+
+            Vector3 grabPoint = grabbedNeedle.GetComponent<Needle>().needleBack.position;
+            grabbedNeedle.transform.parent = null;
+
+            // TODO: Something a little cleaner for this, but this is totally fine for now
+
+
+            Needles.Add(grabbedNeedle);
         }
         else if (context.canceled)
         {
@@ -222,8 +223,11 @@ public class PlayerNeedles : MonoBehaviour
         Vector3 direction = cameraManager.GetActiveCamera().transform.forward;
         if (Physics.SphereCast(origin, 2.5f, direction, out RaycastHit hit, grabDistance, LayerMask.GetMask("Needle")))
         {
-            grabbedNeedle = hit.collider.gameObject;
-            Debug.Log($"Grabbed needle is {grabbedNeedle.name} in layer {LayerMask.LayerToName(hit.collider.gameObject.layer)}");
+            if (!Needles.Contains(hit.collider.gameObject))
+            {
+                Debug.Log($"Needle {hit.collider.name} is stuck in a wall and can be freed!");
+                grabbedNeedle = hit.collider.gameObject;
+            }
         }
         else
         {
