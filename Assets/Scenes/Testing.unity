@@ -1819,7 +1819,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 60.000004
+  field of view: 90
   orthographic: 0
   orthographic size: 10
   m_Depth: -1
@@ -1845,8 +1845,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1165878481}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.38398728, y: -0.24482942, z: 0.10635829, w: 0.8839119}
-  m_LocalPosition: {x: 13.137024, y: 26.723518, z: -38.878372}
+  m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 7.3069997, y: 16.266, z: -30.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3313,6 +3313,11 @@ PrefabInstance:
       objectReference: {fileID: 564927048}
     - target: {fileID: 753092058183027980, guid: 820b47434e238fd488f33522ba36ff38,
         type: 3}
+      propertyPath: grabRadius
+      value: 2.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 753092058183027980, guid: 820b47434e238fd488f33522ba36ff38,
+        type: 3}
       propertyPath: maxNeedles
       value: 5
       objectReference: {fileID: 0}
@@ -3325,6 +3330,11 @@ PrefabInstance:
         type: 3}
       propertyPath: startNeedles
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 753092058183027980, guid: 820b47434e238fd488f33522ba36ff38,
+        type: 3}
+      propertyPath: retrievalSpeed
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 753092058183027980, guid: 820b47434e238fd488f33522ba36ff38,
         type: 3}

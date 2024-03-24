@@ -27,11 +27,17 @@ public class PlayerNeedles : MonoBehaviour
     private float fireSpeed;
 
     [SerializeField]
+    private float retrievalSpeed;
+
+    [SerializeField]
     [Tooltip("Set to 0 to disable needle regen")]
     private float needleRegenTime;
 
     [SerializeField]
     private float grabDistance;
+
+    [SerializeField]
+    private float grabRadius;
 
     [Header("References")]
     [SerializeField]
@@ -141,7 +147,7 @@ public class PlayerNeedles : MonoBehaviour
     }
 
     // no longer need this function, but keeping it around in case I need a homing needle later!
-    private IEnumerator FireNeedleAtTarget(GameObject needle, Vector3 hitPoint, GameObject targetObj=null)
+    private IEnumerator FireNeedleAtTarget(GameObject needle, Vector3 hitPoint, GameObject targetObj = null)
     {
         Vector3 targetPoint = hitPoint;
 
@@ -159,7 +165,7 @@ public class PlayerNeedles : MonoBehaviour
                     fireSpeed * Time.deltaTime
                 )
             );
-            
+
             if (targetObj != null)
             {
                 MeshRenderer targetMeshRenderer = targetObj.GetComponent<MeshRenderer>();
@@ -187,6 +193,33 @@ public class PlayerNeedles : MonoBehaviour
         firedNeedle.GetComponent<Needle>().Fire(launchPoint);
     }
 
+    private IEnumerator RetrieveNeedle(GameObject needle)
+    {
+        needle.transform.parent = null;
+        Vector3 targetPoint = needlePositions[Needles.Count];
+        float travelTime = 0f;
+
+        // TODO: room for optimization here. A linear scan each loop is less than ideal
+        while (Vector3.Distance(needle.transform.position, targetPoint) > 1f && travelTime < 2f && !Needles.Contains(needle))
+        {
+            travelTime += Time.deltaTime;
+            needle.transform.SetPositionAndRotation(
+                position: Vector3.Lerp(
+                    needle.transform.position,
+                    targetPoint,
+                    retrievalSpeed * Time.deltaTime
+                ),
+                rotation: Quaternion.Lerp(
+                    needle.transform.rotation,
+                    transform.rotation,
+                    retrievalSpeed * Time.deltaTime
+                )
+            );
+            yield return new WaitForEndOfFrame();
+        }
+        Needles.Add(needle);
+    }
+
     public void Grab(InputAction.CallbackContext context)
     {
         if (context.performed)
@@ -196,13 +229,8 @@ public class PlayerNeedles : MonoBehaviour
 
             Debug.Log($"Grabbing needle {grabbedNeedle.name}");
 
-            Vector3 grabPoint = grabbedNeedle.GetComponent<Needle>().needleBack.position;
-            grabbedNeedle.transform.parent = null;
-
             // TODO: Something a little cleaner for this, but this is totally fine for now
-
-
-            Needles.Add(grabbedNeedle);
+            StartCoroutine(RetrieveNeedle(grabbedNeedle));
         }
         else if (context.canceled)
         {
@@ -221,7 +249,7 @@ public class PlayerNeedles : MonoBehaviour
     {
         Vector3 origin = cameraManager.GetActiveCamera().transform.position;
         Vector3 direction = cameraManager.GetActiveCamera().transform.forward;
-        if (Physics.SphereCast(origin, 2.5f, direction, out RaycastHit hit, grabDistance, LayerMask.GetMask("Needle")))
+        if (Physics.SphereCast(origin, grabRadius, direction, out RaycastHit hit, grabDistance, LayerMask.GetMask("Needle")))
         {
             if (!Needles.Contains(hit.collider.gameObject))
             {
