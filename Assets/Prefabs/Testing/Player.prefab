@@ -5177,6 +5177,37 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &3664611780526912969
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2196987682123729209}
+  m_Layer: 3
+  m_Name: Thread Start Point
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2196987682123729209
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3664611780526912969}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0, y: 0.263, z: 1.011}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2833409027610297429}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4719667683537274473
 GameObject:
   m_ObjectHideFlags: 0
@@ -5321,6 +5352,7 @@ Transform:
   - {fileID: 4426464749015443027}
   - {fileID: 979439037212336489}
   - {fileID: 8730298420430838797}
+  - {fileID: 2196987682123729209}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!143 &4744796453895832007
@@ -5390,6 +5422,9 @@ MonoBehaviour:
   moveSpeed: 10
   jumpStrength: 10
   gravityMagnitude: 20
+  slideCameraOffset: 1
+  slideCameraDropSpeed: 2.5
+  slideDuration: 1.5
   sprintZoomSpeed: 10
   sprintZoomMultiplier: 1.25
   playerObject: {fileID: 2591592536392914033}
@@ -5406,12 +5441,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f6d003cb06bcf84487c5058dd949f55, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startNeedles: 100
+  maxNeedles: 5
   spreadHorizontal: 4
   spreadVertical: 2
   distanceFromPlayer: 0.5
   followSpeed: 10
   fireSpeed: 50
+  retrievalSpeed: 10
+  needleRegenTime: 0
+  grabDistance: 100
+  grabRadius: 2.5
+  threadStartPoint: {fileID: 2196987682123729209}
   playerMesh: {fileID: 2591592536392914033}
   needlePrefab: {fileID: 5752439979774456800, guid: 32f498d85b33ca044b3dc5c5693dd49f,
     type: 3}
@@ -5554,9 +5594,37 @@ MonoBehaviour:
     m_ActionId: d48a436c-8a61-4855-b3ef-c1c8ec7f3896
     m_ActionName: PlayerMain/Look
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 7550911175002972821}
+        m_TargetAssemblyTypeName: PlayerMovement, Assembly-CSharp
+        m_MethodName: Slide
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: df188ea7-327a-4c22-b6ad-29e3e26cc128
     m_ActionName: PlayerMain/Slide[/Keyboard/ctrl]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 753092058183027980}
+        m_TargetAssemblyTypeName: PlayerNeedles, Assembly-CSharp
+        m_MethodName: Grab
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 2ca44105-a74d-4cfa-80aa-41f27ef2f43d
+    m_ActionName: PlayerMain/Grab[/Mouse/rightButton,/Keyboard/e]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: PlayerMain
