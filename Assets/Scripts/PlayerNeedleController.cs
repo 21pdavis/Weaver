@@ -253,7 +253,6 @@ public class PlayerNeedles : MonoBehaviour
         {
             if (!Needles.Contains(hit.collider.gameObject))
             {
-                Debug.Log($"Needle {hit.collider.name} is stuck in a wall and can be freed!");
                 grabbedNeedle = hit.collider.gameObject;
             }
         }

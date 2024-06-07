@@ -41,6 +41,12 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField]
     private ParticleSystem sprintParticles;
 
+    /// <summary>
+    /// A pivot point with only the y-rotation of the isometric camera applied, helps simplify movement from cam's perspective
+    /// </summary>
+    [SerializeField]
+    private Transform isometricCameraPivot;
+
     private CharacterController controller;
     private MeshRenderer meshRenderer;
     private PlayerCameraManager cameraManager;
@@ -76,6 +82,7 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //Debug.Log(moveDirection);
         UpdateIsGrounded();
 
         // check if sprinting and grounded, play or stop particles accordingly
@@ -158,8 +165,9 @@ public class PlayerMovement : MonoBehaviour
         if (context.performed)
         {
             Vector2 inputDirection = context.ReadValue<Vector2>();
-            Vector3 inCameraDirection = Camera.main.transform.TransformDirection(new Vector3(inputDirection.x, 0, inputDirection.y));
-            moveDirection = new Vector3(inCameraDirection.x, 0, inCameraDirection.z);
+            Debug.Log(inputDirection);
+            Vector3 inCameraDirection = isometricCameraPivot.transform.TransformDirection(new Vector3(inputDirection.x, 0, inputDirection.y)).normalized;
+            moveDirection = new Vector3(inCameraDirection.x, 0, inCameraDirection.z).normalized;
         }
         else if (context.canceled)
         {

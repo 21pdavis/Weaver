@@ -40,6 +40,9 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: Flames
+    uniqueID: 3129747911
+    locked: 0
   - name: Default
     uniqueID: 0
     locked: 0

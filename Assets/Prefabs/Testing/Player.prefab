@@ -5429,6 +5429,7 @@ MonoBehaviour:
   sprintZoomMultiplier: 1.25
   playerObject: {fileID: 2591592536392914033}
   sprintParticles: {fileID: 8019162625912248500}
+  isometricCameraPivot: {fileID: 0}
 --- !u!114 &753092058183027980
 MonoBehaviour:
   m_ObjectHideFlags: 0
