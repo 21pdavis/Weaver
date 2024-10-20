@@ -229,7 +229,11 @@ public class PlayerNeedles : MonoBehaviour
 
             Debug.Log($"Grabbing needle {grabbedNeedle.name}");
 
-            // TODO: Something a little cleaner for this, but this is totally fine for now
+            if (grabbedNeedle.transform.parent && grabbedNeedle.transform.parent.GetComponent<BreakableWindow>() != null)
+            {
+                grabbedNeedle.transform.parent.GetComponent<IPullable>().OnNeedlePulled();
+            }
+
             StartCoroutine(RetrieveNeedle(grabbedNeedle));
         }
         else if (context.canceled)

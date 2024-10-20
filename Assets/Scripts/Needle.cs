@@ -46,7 +46,7 @@ public class Needle : MonoBehaviour
         if (!firing || other.CompareTag("Player") || other.CompareTag("Needle"))
             return;
 
-        StickInto(transform.position, other.transform.parent);
+        StickInto(transform.position, other.transform);
     }
 
     private bool DetectContinuousCollision()
@@ -74,12 +74,12 @@ public class Needle : MonoBehaviour
         return false;
     }
 
-    private void StickInto(Vector3 point, Transform parent)
+    private void StickInto(Vector3 point, Transform other)
     {
         firing = false;
         transform.position = point;
 
-        transform.SetParent(parent.localScale == Vector3.one ? parent : parent.parent, true);
+        transform.SetParent(other.localScale == Vector3.one ? other : other.parent, true);
     }
 
     private IEnumerator MountNeedleAtLaunchPoint()
