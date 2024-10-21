@@ -59,7 +59,7 @@ public class CompanionPowers : MonoBehaviour
 
         // TODO: figure out weird lingering velocity issue
         Rigidbody targetRb = suspendTarget.GetComponent<Rigidbody>();
-        targetRb.velocity = Vector3.zero;
+        targetRb.linearVelocity = Vector3.zero;
         targetRb.useGravity = true;
         targetRb.angularVelocity = -5f * suspendTarget.transform.right;
 
@@ -171,7 +171,7 @@ public class CompanionPowers : MonoBehaviour
                 suspendTarget.GetComponent<Rigidbody>().isKinematic = false;
                 // disable collider to prevent collision with player/other enemies during raise up to max suspend height*
                 suspendTarget.transform.Find("Mesh").GetComponent<Collider>().enabled = false;
-                targetRb.velocity = Vector3.zero;
+                targetRb.linearVelocity = Vector3.zero;
                 targetRb.angularVelocity = -0.25f * suspendTarget.transform.right;
                 targetRb.useGravity = false;
 
