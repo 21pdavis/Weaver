@@ -54,10 +54,10 @@ public class PlayerMovement : MonoBehaviour
     internal bool canMove;
     internal bool canLook;
     internal Vector3 moveDirection;
+    internal bool grounded;
 
     private Vector3 firstPersonLookDirection;
     private float verticalVelocity;
-    private bool grounded;
     private bool waitingForJump;
     private bool sprinting;
     private bool sliding;
@@ -82,8 +82,7 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //Debug.Log(moveDirection);
-        UpdateIsGrounded();
+        UpdateGrounded();
 
         // check if sprinting and grounded, play or stop particles accordingly
         if (sprinting)
@@ -138,7 +137,7 @@ public class PlayerMovement : MonoBehaviour
         UpdateGravity();
     }
 
-    private void UpdateIsGrounded()
+    private void UpdateGrounded()
     {
         // raycast down to check if grounded
         Bounds meshBounds = meshRenderer.bounds;
@@ -165,7 +164,6 @@ public class PlayerMovement : MonoBehaviour
         if (context.performed)
         {
             Vector2 inputDirection = context.ReadValue<Vector2>();
-            Debug.Log(inputDirection);
             Vector3 inCameraDirection = isometricCameraPivot.transform.TransformDirection(new Vector3(inputDirection.x, 0, inputDirection.y)).normalized;
             moveDirection = new Vector3(inCameraDirection.x, 0, inCameraDirection.z).normalized;
         }
@@ -234,6 +232,12 @@ public class PlayerMovement : MonoBehaviour
             verticalVelocity = jumpStrength;
             StartCoroutine(DisableJumpingWithDelay());
         }
+    }
+
+    // TODO: make boost more expressive + directional
+    public void Boost(Vector3 boostVec)
+    {
+        verticalVelocity = jumpStrength * 2 * boostVec.y;
     }
 
     private IEnumerator SlideRoutine()

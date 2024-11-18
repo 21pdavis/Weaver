@@ -38,7 +38,7 @@ public class PlayerCameraManager : MonoBehaviour
     public bool Isometric;
 
     private PlayerMovement playerMovement;
-    private PlayerNeedles playerNeedles;
+    private PlayerNeedleController playerNeedles;
 
     private void Awake()
     {
@@ -51,7 +51,7 @@ public class PlayerCameraManager : MonoBehaviour
         isometricCamera.gameObject.SetActive(Isometric);
         firstPersonCamera.gameObject.SetActive(!Isometric);
         playerMovement = GetComponent<PlayerMovement>();
-        playerNeedles = GetComponent<PlayerNeedles>();
+        playerNeedles = GetComponent<PlayerNeedleController>();
 
         isometricCamera.m_Lens.OrthographicSize = normalOrthoSize;
         firstPersonCamera.m_Lens.FieldOfView = normalFieldOfView;

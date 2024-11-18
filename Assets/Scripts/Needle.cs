@@ -3,7 +3,10 @@ using UnityEngine;
 
 public class Needle : MonoBehaviour
 {
-    public Transform needleBack;
+    internal Vector3 needleBack;
+    internal Vector3 needleFront;
+    internal bool firing;
+    internal bool stuckIntoObject;
 
     [SerializeField]
     private float flightSpeed;
@@ -14,11 +17,8 @@ public class Needle : MonoBehaviour
     [SerializeField]
     private float launchDelay;
 
-    // TODO: animation curve for mounting
-
     private MeshRenderer meshRenderer;
-    private Vector3 prevTip;
-    private bool firing;
+    private Vector3 prevFront;
 
     /// <summary>
     /// Point to which the needle will travel before shooting forward
@@ -28,16 +28,39 @@ public class Needle : MonoBehaviour
     void Start()
     {
         meshRenderer = GetComponent<MeshRenderer>();
-        prevTip = transform.position;
+        prevFront = transform.position;
         firing = false;
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (Application.isPlaying)
+        {
+            Gizmos.DrawWireCube(transform.position, meshRenderer.bounds.size);
+
+            Gizmos.DrawWireSphere(needleBack, 0.5f);
+            Gizmos.DrawWireSphere(needleFront, 0.5f);
+            Gizmos.DrawWireSphere(prevFront, 0.5f);
+        }
     }
 
     void Update()
     {
+        needleFront = transform.position + (meshRenderer.bounds.size.z / 2f) * transform.forward;
+        needleBack = transform.position - (meshRenderer.bounds.size.z / 2f) * transform.forward;
+
+        // ! DEBUG
+        //DetectContinuousCollision();
+        //firing = true;
+        // ! END DEBUG
+
         if (firing && !DetectContinuousCollision())
         {
+            // propel needle forward
             transform.position += flightSpeed * Time.deltaTime * transform.forward;
-            prevTip = transform.position + meshRenderer.bounds.size.z / 4f * transform.forward;
+            //transform.position += flightSpeed / 20 * Time.deltaTime * transform.forward; // ! DELETE
+            //transform.Rotate(Vector3.up, -10 * Time.deltaTime);
+            prevFront = transform.position + meshRenderer.bounds.size.z / 2f * transform.forward;
         }
     }
 
@@ -51,16 +74,16 @@ public class Needle : MonoBehaviour
 
     private bool DetectContinuousCollision()
     {
-        if (!firing)
-            return false;
+        //if (!firing)
+        //    return false;
 
-        Vector3 needleTip = transform.position + meshRenderer.bounds.size.z / 2f * transform.forward;
-        Vector3 needleBase = transform.position - meshRenderer.bounds.size.z / 2f * transform.forward;
-        Vector3 tipToBase = needleBase - needleTip;
-        Vector3 baseToPrevTip = prevTip - needleBase;
+        Vector3 frontToBack = (needleBack - needleFront).normalized;
+        Vector3 backToPrevFront = (prevFront - needleBack).normalized;
 
-        RaycastHit gapHit = new RaycastHit();
-        if (Physics.Raycast(needleTip, tipToBase, out RaycastHit hit, tipToBase.magnitude) || Physics.Raycast(needleBase, baseToPrevTip, out gapHit, baseToPrevTip.magnitude))
+        RaycastHit gapHit = new();
+        if (
+            Physics.Raycast(needleFront, frontToBack, out RaycastHit hit, frontToBack.magnitude)
+            || Physics.Raycast(needleBack, backToPrevFront, out gapHit, backToPrevFront.magnitude))
         {
             RaycastHit realHit = gapHit.collider ? gapHit : hit;
 
@@ -77,6 +100,7 @@ public class Needle : MonoBehaviour
     private void StickInto(Vector3 point, Transform other)
     {
         firing = false;
+        stuckIntoObject = true;
         transform.position = point;
 
         transform.SetParent(other.localScale == Vector3.one ? other : other.parent, true);

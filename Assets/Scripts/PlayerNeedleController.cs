@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-using static Helpers;
-
-public class PlayerNeedles : MonoBehaviour
+public class PlayerNeedleController : MonoBehaviour
 {
     [Header("Needle Options")]
     [SerializeField]
@@ -28,6 +26,19 @@ public class PlayerNeedles : MonoBehaviour
 
     [SerializeField]
     private float retrievalSpeed;
+
+    [SerializeField]
+    private float needleGrabBoostMagnitude;
+
+    [SerializeField]
+    [Tooltip("The distance below the player for which a needle grab still boosts the player upwards")]
+    private float needleGrabBoostLeniency;
+
+    [SerializeField]
+    private float needleGrabUpwardPullForce;
+
+    [SerializeField]
+    private float needleGrabDownwardPullForce;
 
     [SerializeField]
     [Tooltip("Set to 0 to disable needle regen")]
@@ -53,6 +64,7 @@ public class PlayerNeedles : MonoBehaviour
 
     private MeshRenderer meshRenderer;
     private PlayerCameraManager cameraManager;
+    private PlayerMovement playerMovement;
 
     internal bool canFire;
 
@@ -67,6 +79,7 @@ public class PlayerNeedles : MonoBehaviour
     {
         meshRenderer = playerMesh.GetComponent<MeshRenderer>();
         cameraManager = GetComponent<PlayerCameraManager>();
+        playerMovement = GetComponent<PlayerMovement>();
         UpdateAnchors();
 
         // initial needle positions
@@ -131,19 +144,6 @@ public class PlayerNeedles : MonoBehaviour
         }
 
         UpdateGrabNeedle();
-    }
-
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(threadStartPoint.position, 0.1f);
-
-        if (Application.isPlaying && grabbedNeedle != null)
-        {
-            Gizmos.color = Color.cyan;
-
-            Gizmos.DrawWireSphere(grabbedNeedle.GetComponent<Needle>().needleBack.position, 0.25f);
-        }
     }
 
     // no longer need this function, but keeping it around in case I need a homing needle later!
@@ -224,11 +224,14 @@ public class PlayerNeedles : MonoBehaviour
     {
         if (context.performed)
         {
-            if (!grabbedNeedle)
+            if (!grabbedNeedle || grabbedNeedle.GetComponent<Needle>().firing)
                 return;
 
-            Debug.Log($"Grabbing needle {grabbedNeedle.name}");
-
+            if (!playerMovement.grounded)
+            {
+                playerMovement.Boost(grabbedNeedle.transform.position.y >= transform.position.y - needleGrabBoostLeniency ? needleGrabUpwardPullForce * Vector3.up : needleGrabDownwardPullForce * Vector3.down);
+            }
+            
             if (grabbedNeedle.transform.parent && grabbedNeedle.transform.parent.GetComponent<BreakableWindow>() != null)
             {
                 grabbedNeedle.transform.parent.GetComponent<IPullable>().OnNeedlePulled();
