@@ -195,12 +195,14 @@ public class PlayerNeedleController : MonoBehaviour
 
     private IEnumerator RetrieveNeedle(GameObject needle)
     {
+        needle.GetComponent<Needle>().stuckIntoObject = false;
+
         needle.transform.parent = null;
         Vector3 targetPoint = needlePositions[Needles.Count];
         float travelTime = 0f;
 
         // TODO: room for optimization here. A linear scan each loop is less than ideal
-        while (Vector3.Distance(needle.transform.position, targetPoint) > 1f && travelTime < 2f && !Needles.Contains(needle))
+        while (Vector3.Distance(needle.transform.position, targetPoint) > 1f && travelTime < 2f)
         {
             travelTime += Time.deltaTime;
             needle.transform.SetPositionAndRotation(
@@ -224,7 +226,7 @@ public class PlayerNeedleController : MonoBehaviour
     {
         if (context.performed)
         {
-            if (!grabbedNeedle || grabbedNeedle.GetComponent<Needle>().firing)
+            if (!grabbedNeedle || !grabbedNeedle.GetComponent<Needle>().stuckIntoObject)
                 return;
 
             if (!playerMovement.grounded)

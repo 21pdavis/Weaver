@@ -7,6 +7,7 @@ public class Needle : MonoBehaviour
     internal Vector3 needleFront;
     internal bool firing;
     internal bool stuckIntoObject;
+    internal bool grabbable;
 
     [SerializeField]
     private float flightSpeed;
@@ -19,6 +20,7 @@ public class Needle : MonoBehaviour
 
     private MeshRenderer meshRenderer;
     private Vector3 prevFront;
+    private float needleLength;
 
     /// <summary>
     /// Point to which the needle will travel before shooting forward
@@ -27,6 +29,8 @@ public class Needle : MonoBehaviour
 
     void Start()
     {
+        needleLength = GameObject.Find("Reference Needle").GetComponent<MeshRenderer>().bounds.size.z;
+
         meshRenderer = GetComponent<MeshRenderer>();
         prevFront = transform.position;
         firing = false;
@@ -38,28 +42,28 @@ public class Needle : MonoBehaviour
         {
             Gizmos.DrawWireCube(transform.position, meshRenderer.bounds.size);
 
+            Gizmos.color = Color.cyan;
             Gizmos.DrawWireSphere(needleBack, 0.5f);
+
+            Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(needleFront, 0.5f);
+
+            Gizmos.color = Color.blue + Color.red;
             Gizmos.DrawWireSphere(prevFront, 0.5f);
         }
     }
 
     void Update()
     {
-        needleFront = transform.position + (meshRenderer.bounds.size.z / 2f) * transform.forward;
-        needleBack = transform.position - (meshRenderer.bounds.size.z / 2f) * transform.forward;
+        needleFront = transform.position + (needleLength / 2f) * transform.forward;
+        needleBack = transform.position - (needleLength / 2f) * transform.forward;
 
-        // ! DEBUG
-        //DetectContinuousCollision();
-        //firing = true;
-        // ! END DEBUG
+        Debug.Log($"Needle length: {Vector3.Distance(needleFront, needleBack)}");
 
         if (firing && !DetectContinuousCollision())
         {
             // propel needle forward
             transform.position += flightSpeed * Time.deltaTime * transform.forward;
-            //transform.position += flightSpeed / 20 * Time.deltaTime * transform.forward; // ! DELETE
-            //transform.Rotate(Vector3.up, -10 * Time.deltaTime);
             prevFront = transform.position + meshRenderer.bounds.size.z / 2f * transform.forward;
         }
     }
@@ -74,8 +78,8 @@ public class Needle : MonoBehaviour
 
     private bool DetectContinuousCollision()
     {
-        //if (!firing)
-        //    return false;
+        if (!firing)
+            return false;
 
         Vector3 frontToBack = (needleBack - needleFront).normalized;
         Vector3 backToPrevFront = (prevFront - needleBack).normalized;
@@ -110,7 +114,7 @@ public class Needle : MonoBehaviour
     {
         while (Vector3.Distance(launchPoint, transform.position) > 0.1f)
         {
-            // TODO: Slerp
+            // TODO: Slerp (idk that we do want a slerp here...)
             transform.position = Vector3.Lerp(transform.position, launchPoint, Time.deltaTime * flightSpeed);
             yield return new WaitForEndOfFrame();
         }

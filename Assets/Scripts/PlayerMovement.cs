@@ -237,6 +237,7 @@ public class PlayerMovement : MonoBehaviour
     // TODO: make boost more expressive + directional
     public void Boost(Vector3 boostVec)
     {
+        //! note to self: maybe do some form of += here, could be cool to have a multiplier, but straight += seems like it could be too much
         verticalVelocity = jumpStrength * 2 * boostVec.y;
     }
 
