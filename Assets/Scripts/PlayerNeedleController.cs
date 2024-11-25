@@ -213,7 +213,8 @@ public class PlayerNeedleController : MonoBehaviour
 
     private IEnumerator RetrieveNeedle(GameObject needle)
     {
-        needle.GetComponent<Needle>().stuckIntoObject = false;
+        Needle needleComponent = needle.GetComponent<Needle>();
+        needleComponent.needleState = Needle.NeedleState.Loaded;
 
         needle.transform.parent = null;
         Vector3 targetPoint = needlePositions[Needles.Count];
@@ -244,7 +245,7 @@ public class PlayerNeedleController : MonoBehaviour
     {
         if (context.performed)
         {
-            if (!grabbedNeedle || !grabbedNeedle.GetComponent<Needle>().stuckIntoObject)
+            if (!grabbedNeedle || grabbedNeedle.GetComponent<Needle>().needleState != Needle.NeedleState.Stuck)
                 return;
 
             if (!playerMovement.grounded)

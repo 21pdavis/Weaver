@@ -3,10 +3,18 @@ using UnityEngine;
 
 public class Needle : MonoBehaviour
 {
+    internal enum NeedleState
+    {
+        Loaded,
+        Firing,
+        PowerFiring,
+        Stuck
+    }
+
+    internal NeedleState needleState;
+
     internal Vector3 needleBack;
     internal Vector3 needleFront;
-    internal bool firing;
-    internal bool stuckIntoObject;
     internal bool grabbable;
 
     [SerializeField]
@@ -25,20 +33,16 @@ public class Needle : MonoBehaviour
     private float needleLength;
     private float initialFlightSpeed;
 
-    /// <summary>
-    /// Point to which the needle will travel before shooting forward
-    /// </summary>
-    //private Vector3 launchPoint;
-
     void Start()
     {
+        needleState = NeedleState.Loaded;
         player = GameObject.Find("Player");
         playerNeedleController = player.GetComponent<PlayerNeedleController>();
         needleLength = GameObject.Find("Reference Needle").GetComponent<MeshRenderer>().bounds.size.z;
+        grabbable = false;
 
         meshRenderer = GetComponent<MeshRenderer>();
         prevFront = transform.position;
-        firing = false;
         initialFlightSpeed = flightSpeed;
     }
 
@@ -64,7 +68,7 @@ public class Needle : MonoBehaviour
         needleFront = transform.position + (needleLength / 2f) * transform.forward;
         needleBack = transform.position - (needleLength / 2f) * transform.forward;
 
-        if (firing && !DetectContinuousCollision())
+        if ((needleState == NeedleState.Firing || needleState == NeedleState.PowerFiring) && !DetectContinuousCollision())
         {
             // propel needle forward
             transform.position += flightSpeed * Time.deltaTime * transform.forward;
@@ -74,7 +78,7 @@ public class Needle : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!firing || other.CompareTag("Player") || other.CompareTag("Needle"))
+        if (!(needleState == NeedleState.Firing || needleState == NeedleState.PowerFiring) || other.CompareTag("Player") || other.CompareTag("Needle"))
             return;
 
         StickInto(transform.position, other.transform);
@@ -82,7 +86,7 @@ public class Needle : MonoBehaviour
 
     private bool DetectContinuousCollision()
     {
-        if (!firing)
+        if (!(needleState == NeedleState.Firing || needleState == NeedleState.PowerFiring))
             return false;
 
         Vector3 frontToBack = (needleBack - needleFront).normalized;
@@ -107,8 +111,7 @@ public class Needle : MonoBehaviour
 
     private void StickInto(Vector3 point, Transform other)
     {
-        firing = false;
-        stuckIntoObject = true;
+        needleState = NeedleState.Stuck;
         transform.position = point;
         flightSpeed = initialFlightSpeed;
 
@@ -128,7 +131,7 @@ public class Needle : MonoBehaviour
 
         yield return new WaitForSeconds(launchDelay);
 
-        firing = true;
+        needleState = NeedleState.Firing;
     }
 
     internal void Fire()
@@ -140,7 +143,6 @@ public class Needle : MonoBehaviour
     // TODO: put this in a static helpers class?
     private IEnumerator ShakeObject(float shakeDuration, float maxDistance, float frequency, float intensity = 0.1f)
     {
-        Vector3 initialPosition = transform.position;
         float startTime = Time.time;
 
         while (Time.time < startTime + shakeDuration)
@@ -173,7 +175,7 @@ public class Needle : MonoBehaviour
         yield return new WaitForSeconds(playerNeedleController.powerFireChargeTime);
 
         playerNeedleController.canFire = true;
-        firing = true;
+        needleState = NeedleState.PowerFiring;
     }
 
     internal void PowerFire()
