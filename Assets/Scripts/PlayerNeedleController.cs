@@ -24,6 +24,8 @@ public class PlayerNeedleController : MonoBehaviour
     [SerializeField]
     private float fireSpeed;
 
+    public float powerFireChargeTime;
+
     [SerializeField]
     private float retrievalSpeed;
 
@@ -67,6 +69,7 @@ public class PlayerNeedleController : MonoBehaviour
     private PlayerMovement playerMovement;
 
     internal bool canFire;
+    internal Vector3 launchPoint;
 
     private GameObject grabbedNeedle;
     private Vector3 needleAnchorCenter;
@@ -77,6 +80,9 @@ public class PlayerNeedleController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        // TODO: make this initialization/update cleaner or move it into its own update function
+        launchPoint = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 2, Camera.main.nearClipPlane)) + 2.5f * Camera.main.transform.forward;
+
         meshRenderer = playerMesh.GetComponent<MeshRenderer>();
         cameraManager = GetComponent<PlayerCameraManager>();
         playerMovement = GetComponent<PlayerMovement>();
@@ -110,6 +116,8 @@ public class PlayerNeedleController : MonoBehaviour
     void Update()
     {
         UpdateAnchors();
+
+        launchPoint = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 2, Camera.main.nearClipPlane)) + 2.5f * Camera.main.transform.forward;
 
         if (needleRegenTime > 0 && Needles.Count < maxNeedles && Time.time > regenStartTime + needleRegenTime)
         {
@@ -188,9 +196,19 @@ public class PlayerNeedleController : MonoBehaviour
 
         GameObject firedNeedle = Needles[0];
         Needles.RemoveAt(0);
-        Vector3 launchPoint = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 2, Camera.main.nearClipPlane))
-                                + 2.5f * Camera.main.transform.forward;
-        firedNeedle.GetComponent<Needle>().Fire(launchPoint);
+        //Vector3 launchPoint = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 2, Camera.main.nearClipPlane)) + 2.5f * Camera.main.transform.forward;
+        firedNeedle.GetComponent<Needle>().Fire();
+    }
+
+    public void PowerFire(InputAction.CallbackContext context)
+    {
+        if (!context.started || cameraManager.Isometric || Needles.Count == 0 || !canFire)
+            return;
+
+        GameObject firedNeedle = Needles[0];
+        Needles.RemoveAt(0);
+
+        firedNeedle.GetComponent<Needle>().PowerFire();
     }
 
     private IEnumerator RetrieveNeedle(GameObject needle)

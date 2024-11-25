@@ -51,10 +51,12 @@ public class PlayerMovement : MonoBehaviour
     private MeshRenderer meshRenderer;
     private PlayerCameraManager cameraManager;
 
+    internal Vector3 moveDirection;
     internal bool canMove;
     internal bool canLook;
-    internal Vector3 moveDirection;
     internal bool grounded;
+    internal float horizontalMoveSpeedMultiplier;
+    internal float verticalMoveSpeedMultiplier;
 
     private Vector3 firstPersonLookDirection;
     private float verticalVelocity;
@@ -77,6 +79,8 @@ public class PlayerMovement : MonoBehaviour
         canLook = true;
         grounded = true;
         waitingForJump = false;
+        horizontalMoveSpeedMultiplier = 1.0f;
+        verticalMoveSpeedMultiplier = 1.0f;
     }
 
     // Update is called once per frame
@@ -128,7 +132,10 @@ public class PlayerMovement : MonoBehaviour
         // move character
         if (canMove)
         {
-           controller.Move(moveSpeed * Time.deltaTime * moveDirection + verticalVelocity * Time.deltaTime * Vector3.up);
+            controller.Move(
+                moveSpeed * Time.deltaTime * horizontalMoveSpeedMultiplier * moveDirection // horizontal
+                + verticalVelocity * verticalMoveSpeedMultiplier * Time.deltaTime * Vector3.up // vertical
+            );
         }
     }
     

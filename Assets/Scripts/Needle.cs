@@ -18,22 +18,28 @@ public class Needle : MonoBehaviour
     [SerializeField]
     private float launchDelay;
 
+    private GameObject player;
+    private PlayerNeedleController playerNeedleController;
     private MeshRenderer meshRenderer;
     private Vector3 prevFront;
     private float needleLength;
+    private float initialFlightSpeed;
 
     /// <summary>
     /// Point to which the needle will travel before shooting forward
     /// </summary>
-    private Vector3 launchPoint;
+    //private Vector3 launchPoint;
 
     void Start()
     {
+        player = GameObject.Find("Player");
+        playerNeedleController = player.GetComponent<PlayerNeedleController>();
         needleLength = GameObject.Find("Reference Needle").GetComponent<MeshRenderer>().bounds.size.z;
 
         meshRenderer = GetComponent<MeshRenderer>();
         prevFront = transform.position;
         firing = false;
+        initialFlightSpeed = flightSpeed;
     }
 
     private void OnDrawGizmos()
@@ -57,8 +63,6 @@ public class Needle : MonoBehaviour
     {
         needleFront = transform.position + (needleLength / 2f) * transform.forward;
         needleBack = transform.position - (needleLength / 2f) * transform.forward;
-
-        Debug.Log($"Needle length: {Vector3.Distance(needleFront, needleBack)}");
 
         if (firing && !DetectContinuousCollision())
         {
@@ -106,16 +110,19 @@ public class Needle : MonoBehaviour
         firing = false;
         stuckIntoObject = true;
         transform.position = point;
+        flightSpeed = initialFlightSpeed;
 
         transform.SetParent(other.localScale == Vector3.one ? other : other.parent, true);
     }
 
-    private IEnumerator MountNeedleAtLaunchPoint()
+    private IEnumerator MountAndFire()
     {
-        while (Vector3.Distance(launchPoint, transform.position) > 0.1f)
+        Vector3 launchPointAtTimeOfFire = playerNeedleController.launchPoint;
+
+        while (Vector3.Distance(launchPointAtTimeOfFire, transform.position) > 0.1f)
         {
             // TODO: Slerp (idk that we do want a slerp here...)
-            transform.position = Vector3.Lerp(transform.position, launchPoint, Time.deltaTime * flightSpeed);
+            transform.position = Vector3.Lerp(transform.position, launchPointAtTimeOfFire, Time.deltaTime * flightSpeed);
             yield return new WaitForEndOfFrame();
         }
 
@@ -124,10 +131,54 @@ public class Needle : MonoBehaviour
         firing = true;
     }
 
-    internal void Fire(Vector3 launchPoint)
+    internal void Fire()
     {
-        this.launchPoint = launchPoint;
-        transform.rotation = Quaternion.LookRotation(launchPoint - Camera.main.transform.position);
-        StartCoroutine(MountNeedleAtLaunchPoint());
+        transform.rotation = Quaternion.LookRotation(playerNeedleController.launchPoint - Camera.main.transform.position);
+        StartCoroutine(MountAndFire());
+    }
+
+    // TODO: put this in a static helpers class?
+    private IEnumerator ShakeObject(float shakeDuration, float maxDistance, float frequency, float intensity = 0.1f)
+    {
+        Vector3 initialPosition = transform.position;
+        float startTime = Time.time;
+
+        while (Time.time < startTime + shakeDuration)
+        {
+            float elapsedTime = Time.time - startTime;
+
+            float displacement = Mathf.Sin(elapsedTime * frequency * Mathf.PI * 2f) * maxDistance * intensity;
+            float randomDirectionAngle = Random.Range(0f, 360f);
+            //Vector3 newPosition = initialPosition + (Quaternion.AngleAxis(randomDirectionAngle, transform.forward) * new Vector3(displacement, displacement, 0f));
+            Vector3 newPosition = playerNeedleController.launchPoint + (Quaternion.AngleAxis(randomDirectionAngle, transform.forward) * new Vector3(displacement, displacement, 0f));
+            transform.rotation = Quaternion.LookRotation(playerNeedleController.launchPoint - Camera.main.transform.position);
+            transform.position = newPosition;
+            yield return new WaitForEndOfFrame();
+        }
+    }
+
+    private IEnumerator MountAndPowerFire()
+    {
+        Vector3 launchPointAtTimeOfFire = playerNeedleController.launchPoint;
+        playerNeedleController.canFire = false;
+
+        while (Vector3.Distance(launchPointAtTimeOfFire, transform.position) > 0.1f)
+        {
+            // TODO: Slerp (idk that we do want a slerp here...)
+            transform.position = Vector3.Lerp(transform.position, launchPointAtTimeOfFire, Time.deltaTime * flightSpeed);
+            yield return new WaitForEndOfFrame();
+        }
+
+        StartCoroutine(ShakeObject(playerNeedleController.powerFireChargeTime, 0.5f, 10f));
+        yield return new WaitForSeconds(playerNeedleController.powerFireChargeTime);
+
+        playerNeedleController.canFire = true;
+        firing = true;
+    }
+
+    internal void PowerFire()
+    {
+        transform.rotation = Quaternion.LookRotation(playerNeedleController.launchPoint - Camera.main.transform.position);
+        StartCoroutine(MountAndPowerFire());
     }
 }
