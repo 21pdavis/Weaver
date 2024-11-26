@@ -214,7 +214,8 @@ public class PlayerNeedleController : MonoBehaviour
     private IEnumerator RetrieveNeedle(GameObject needle)
     {
         Needle needleComponent = needle.GetComponent<Needle>();
-        needleComponent.needleState = Needle.NeedleState.Loaded;
+        needleComponent.state = Needle.NeedleState.Loaded;
+        needleComponent.grabbable = false;
 
         needle.transform.parent = null;
         Vector3 targetPoint = needlePositions[Needles.Count];
@@ -245,7 +246,7 @@ public class PlayerNeedleController : MonoBehaviour
     {
         if (context.performed)
         {
-            if (!grabbedNeedle || grabbedNeedle.GetComponent<Needle>().needleState != Needle.NeedleState.Stuck)
+            if (!grabbedNeedle || grabbedNeedle.GetComponent<Needle>().state != Needle.NeedleState.Stuck)
                 return;
 
             if (!playerMovement.grounded)
@@ -281,7 +282,7 @@ public class PlayerNeedleController : MonoBehaviour
         {
             if (!Needles.Contains(hit.collider.gameObject))
             {
-                grabbedNeedle = hit.collider.gameObject;
+                grabbedNeedle = hit.collider.transform.parent.gameObject;
             }
         }
         else

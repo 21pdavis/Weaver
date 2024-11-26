@@ -164,13 +164,16 @@ public class CompanionPowers : MonoBehaviour
                 // place companion at base of target's mesh before suspending it
                 companionMovement.enabled = false; // disable companion movement while suspended
 
+                // TODO: Rework this to be in line with new state machine paradigm
                 // disable navmesh to allow direct transform manipulation
                 suspendTarget.transform.GetComponent<EnemyMovement>().navMeshAgent.enabled = false;
 
                 // need to zero velocities and disable gravity to prevent the enemy from having "left over" velocity from moving/previous suspend etc.
                 suspendTarget.GetComponent<Rigidbody>().isKinematic = false;
+
                 // disable collider to prevent collision with player/other enemies during raise up to max suspend height*
                 suspendTarget.transform.Find("Mesh").GetComponent<Collider>().enabled = false;
+
                 targetRb.linearVelocity = Vector3.zero;
                 targetRb.angularVelocity = -0.25f * suspendTarget.transform.right;
                 targetRb.useGravity = false;

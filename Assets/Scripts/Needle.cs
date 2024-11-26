@@ -11,7 +11,7 @@ public class Needle : MonoBehaviour
         Stuck
     }
 
-    internal NeedleState needleState;
+    internal NeedleState state;
 
     internal Vector3 needleBack;
     internal Vector3 needleFront;
@@ -23,25 +23,22 @@ public class Needle : MonoBehaviour
     [SerializeField]
     private float mountSpeed;
 
-    [SerializeField]
-    private float launchDelay;
+    public MeshRenderer meshRenderer;
 
     private GameObject player;
     private PlayerNeedleController playerNeedleController;
-    private MeshRenderer meshRenderer;
     private Vector3 prevFront;
     private float needleLength;
     private float initialFlightSpeed;
 
     void Start()
     {
-        needleState = NeedleState.Loaded;
+        state = NeedleState.Loaded;
         player = GameObject.Find("Player");
         playerNeedleController = player.GetComponent<PlayerNeedleController>();
-        needleLength = GameObject.Find("Reference Needle").GetComponent<MeshRenderer>().bounds.size.z;
+        needleLength = GameObject.Find("Reference Needle").GetComponent<Needle>().meshRenderer.bounds.size.z;
         grabbable = false;
 
-        meshRenderer = GetComponent<MeshRenderer>();
         prevFront = transform.position;
         initialFlightSpeed = flightSpeed;
     }
@@ -68,25 +65,25 @@ public class Needle : MonoBehaviour
         needleFront = transform.position + (needleLength / 2f) * transform.forward;
         needleBack = transform.position - (needleLength / 2f) * transform.forward;
 
-        if ((needleState == NeedleState.Firing || needleState == NeedleState.PowerFiring) && !DetectContinuousCollision())
+        if ((state == NeedleState.Firing || state == NeedleState.PowerFiring) && !DetectContinuousCollision())
         {
-            // propel needle forward
-            transform.position += flightSpeed * Time.deltaTime * transform.forward;
+                // propel needle forward
+                transform.position += flightSpeed * Time.deltaTime * transform.forward;
             prevFront = transform.position + meshRenderer.bounds.size.z / 2f * transform.forward;
         }
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!(needleState == NeedleState.Firing || needleState == NeedleState.PowerFiring) || other.CompareTag("Player") || other.CompareTag("Needle"))
+        if (!(state == NeedleState.Firing || state == NeedleState.PowerFiring) || other.CompareTag("Player") || other.CompareTag("Needle"))
             return;
 
-        StickInto(transform.position, other.transform);
+        StickInto(transform.position, other.transform.parent);
     }
 
     private bool DetectContinuousCollision()
     {
-        if (!(needleState == NeedleState.Firing || needleState == NeedleState.PowerFiring))
+        if (!(state == NeedleState.Firing || state == NeedleState.PowerFiring))
             return false;
 
         Vector3 frontToBack = (needleBack - needleFront).normalized;
@@ -111,11 +108,28 @@ public class Needle : MonoBehaviour
 
     private void StickInto(Vector3 point, Transform other)
     {
-        needleState = NeedleState.Stuck;
         transform.position = point;
         flightSpeed = initialFlightSpeed;
 
-        transform.SetParent(other.localScale == Vector3.one ? other : other.parent, true);
+        if (state == NeedleState.PowerFiring && other.CompareTag("Enemy"))
+        {
+            EnemyStats enemyStats = other.GetComponent<EnemyStats>(); // assumption: all enemies have EnemyStats
+            if (enemyStats && enemyStats.pinnable)
+            {
+                other.transform.rotation = Quaternion.LookRotation(-transform.forward, transform.up);
+                other.transform.SetParent(transform, true);
+                other.transform.position = Vector3.zero;
+            }
+            else
+            {
+                Debug.Log($"enemyStats is {enemyStats}");
+            }
+        }
+        else
+        {
+            transform.SetParent(other.localScale == Vector3.one ? other : other.parent, true);
+            state = NeedleState.Stuck;
+        }
     }
 
     private IEnumerator MountAndFire()
@@ -129,9 +143,7 @@ public class Needle : MonoBehaviour
             yield return new WaitForEndOfFrame();
         }
 
-        yield return new WaitForSeconds(launchDelay);
-
-        needleState = NeedleState.Firing;
+        state = NeedleState.Firing;
     }
 
     internal void Fire()
@@ -153,8 +165,7 @@ public class Needle : MonoBehaviour
             float randomDirectionAngle = Random.Range(0f, 360f);
             //Vector3 newPosition = initialPosition + (Quaternion.AngleAxis(randomDirectionAngle, transform.forward) * new Vector3(displacement, displacement, 0f));
             Vector3 newPosition = playerNeedleController.launchPoint + (Quaternion.AngleAxis(randomDirectionAngle, transform.forward) * new Vector3(displacement, displacement, 0f));
-            transform.rotation = Quaternion.LookRotation(playerNeedleController.launchPoint - Camera.main.transform.position);
-            transform.position = newPosition;
+            transform.SetPositionAndRotation(newPosition, Quaternion.LookRotation(playerNeedleController.launchPoint - Camera.main.transform.position));
             yield return new WaitForEndOfFrame();
         }
     }
@@ -175,7 +186,7 @@ public class Needle : MonoBehaviour
         yield return new WaitForSeconds(playerNeedleController.powerFireChargeTime);
 
         playerNeedleController.canFire = true;
-        needleState = NeedleState.PowerFiring;
+        state = NeedleState.PowerFiring;
     }
 
     internal void PowerFire()
