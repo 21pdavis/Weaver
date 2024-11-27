@@ -169,6 +169,7 @@ public class CompanionPowers : MonoBehaviour
                 suspendTarget.transform.GetComponent<EnemyMovement>().navMeshAgent.enabled = false;
 
                 // need to zero velocities and disable gravity to prevent the enemy from having "left over" velocity from moving/previous suspend etc.
+                // TODO: the above comment feels like it's in conflict with what this line actually does?
                 suspendTarget.GetComponent<Rigidbody>().isKinematic = false;
 
                 // disable collider to prevent collision with player/other enemies during raise up to max suspend height*

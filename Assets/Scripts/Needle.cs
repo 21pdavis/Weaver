@@ -67,8 +67,8 @@ public class Needle : MonoBehaviour
 
         if ((state == NeedleState.Firing || state == NeedleState.PowerFiring) && !DetectContinuousCollision())
         {
-                // propel needle forward
-                transform.position += flightSpeed * Time.deltaTime * transform.forward;
+            // propel needle forward
+            transform.position += flightSpeed * Time.deltaTime * transform.forward;
             prevFront = transform.position + meshRenderer.bounds.size.z / 2f * transform.forward;
         }
     }
@@ -114,16 +114,9 @@ public class Needle : MonoBehaviour
         if (state == NeedleState.PowerFiring && other.CompareTag("Enemy"))
         {
             EnemyStats enemyStats = other.GetComponent<EnemyStats>(); // assumption: all enemies have EnemyStats
-            if (enemyStats && enemyStats.pinnable)
-            {
-                other.transform.rotation = Quaternion.LookRotation(-transform.forward, transform.up);
-                other.transform.SetParent(transform, true);
-                other.transform.position = Vector3.zero;
-            }
-            else
-            {
-                Debug.Log($"enemyStats is {enemyStats}");
-            }
+            other.transform.rotation = Quaternion.LookRotation(-transform.forward, transform.up);
+            other.transform.SetParent(transform, true);
+            enemyStats.state = EnemyStats.EnemyState.Pinned;
         }
         else
         {
